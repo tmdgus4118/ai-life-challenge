@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>이웃소리 소음 리포트 <%= view.summary.period.from %> ~ <%= view.summary.period.to %></title>
+  <link rel="stylesheet" href="/css/style.css?v=<%= assetVersion %>">
+  <link rel="stylesheet" href="/css/print.css?v=<%= assetVersion %>">
+</head>
+<body class="print-body">
+<% const s = view.summary; const ns = view.settings.night_start, ne = view.settings.night_end; const isNight = (h) => ns < ne ? (h >= ns && h < ne) : (h >= ns || h < ne); const days = ['월','화','수','목','금','토','일']; %>
+<div class="print-toolbar no-print">
+  <button type="button" class="btn btn--primary" onclick="window.print()">PDF로 저장 / 인쇄</button>
+  <a class="btn btn--ghost" href="/report?days=<%= view.days %>">리포트 화면으로</a>
+  <span class="muted small">브라우저 인쇄 대화상자에서 "PDF로 저장"을 선택하세요.</span>
+</div>
+<article class="print-page">
+  <header class="print-head">
+    <div>
+      <h1>생활소음 기록 리포트</h1>
+      <p class="print-head__period">기간: <%= s.period.from %> ~ <%= s.period.to %> (<%= s.period.days %>일) · 작성: <%= time.formatDate(new Date()) %></p>
+    </div>
+    <p class="print-head__brand">이웃소리<br><span>층간소음 AI 기록·중재</span></p>
+  </header>
+
+  <% if (s.demo_events) { %><p class="print-disclaimer print-disclaimer--demo"><strong>데모 기록.</strong> 이 리포트의 사건 <%= s.total_events %>건 중 <%= s.demo_events %>건은 서비스 시연용으로 만든 모의 데이터입니다. 실제 측정 기록이 아닙니다.</p><% } %>
+  <p class="print-disclaimer"><strong>참고 고지.</strong> <%= disclaimer %> 공식 측정은 <%= center.name %>(<%= center.phone %>)에서 신청할 수 있습니다.</p>
+
+  <section class="print-grid">
+    <div class="stat"><span class="stat__label">총 사건</span><span class="stat__value"><%= s.total_events %><small>건</small></span></div>
+    <div class="stat stat--danger"><span class="stat__label">기준 초과</span><span class="stat__value"><%= s.exceeded_events %><small>건</small></span></div>
+    <div class="stat"><span class="stat__label">주된 소음원</span><span class="stat__value stat__value--text"><%= s.top_source ? s.top_source.label : '-' %></span><span class="stat__sub"><%= s.top_source ? s.top_source.count + '건' : '' %></span></div>
+    <div class="stat"><span class="stat__label">가장 많은 시간대</span><span class="stat__value stat__value--text"><%= s.top_hour ? s.top_hour.label : '-' %></span><span class="stat__sub"><%= s.top_hour ? s.top_hour.count + '건' : '' %></span></div>
+  </section>
+
+  <section class="print-section print-dial">
+    <div class="print-dial__svg"><%- dial.build({ hourly: s.hourly, hourlyExceeded: s.hourly_exceeded, nightStart: ns, nightEnd: ne, total: s.total_events, exceeded: s.exceeded_events }) %></div>
+    <div>
+      <h2>24시간 소음 다이얼</h2>
+      <p class="small">0시가 위, 시계 방향입니다. 막대 길이는 그 시간대 사건 수, 빨강은 기준 초과 사건, 음영은 야간(<%= ns %>~<%= String(ne).padStart(2, '0') %>시)입니다.</p>
+      <p class="small"><strong><%= view.headline.pattern %></strong><% if (view.headline.delta) { %> <%= view.headline.delta %><% } %></p>
+    </div>
+  </section>
+
+  <section class="print-section">
+    <h2>AI 요약문</h2>
+    <p class="ai-text"><%= view.report ? view.report.ai_text : '생성된 요약문이 없습니다. 리포트 화면에서 "요약 생성"을 눌러 주세요.' %></p>
+    <% if (view.report) { %><p class="muted small"><%= view.generated_label %> 생성 · <%= view.report.provider === 'template' ? '규칙 기반 작성' : 'AI 작성' %> · 숫자는 서버 집계값이며 AI는 문장만 작성</p><% } %>
+  </section>
+
+  <section class="print-two">
+    <div class="print-section">
+      <h2>소음원별 사건 수</h2>
+      <ul class="hbar-list">
+        <% s.by_source.forEach((g) => { %>
+          <li class="hbar"><span class="hbar__label"><%= g.label %></span><span class="hbar__track"><span class="hbar__fill" style="width:<%= Math.round((g.count / view.source_max) * 100) %>%"></span></span><span class="hbar__value"><%= g.count %><small>건</small> <span class="muted">(초과 <%= g.exceeded %>)</span></span></li>
+        <% }); %>
+      </ul>
+    </div>
+    <div class="print-section">
+      <h2>세부 수치</h2>
+      <dl class="kv">
+        <div><dt>가장 높은 소음</dt><dd><%= s.max_db ? `${s.max_db.value}dB · ${s.max_db.source_label} · ${s.max_db.at_label}` : '-' %></dd></div>
+        <div><dt>가장 긴 사건</dt><dd><%= s.longest_event ? `${s.longest_event.duration_label} · ${s.longest_event.source_label}` : '-' %></dd></div>
+        <div><dt>야간 사건 / 초과</dt><dd><%= s.night_events %>건 / <%= s.night_exceeded_events %>건</dd></div>
+        <div><dt>평균 dB(사건 평균)</dt><dd><%= s.avg_db_mean ?? '-' %></dd></div>
+        <% if (s.vibration && s.vibration.measured_events) { %><div><dt>바닥 진동 동반</dt><dd><%= s.vibration.with_vibration %>건 (진동을 잰 <%= s.vibration.measured_events %>건 중, 기준 초과 <%= s.vibration.exceeded_with_vibration %>건)</dd></div><% } %>
+      </dl>
+    </div>
+  </section>
+
+  <section class="print-section">
+    <h2>시간대 분포</h2>
+    <div class="vbars vbars--print" role="img" aria-label="시간대별 사건 수">
+      <% s.hourly.forEach((c, h) => { %><div class="vbar<%= isNight(h) ? ' is-night' : '' %>"><span class="vbar__fill" style="height:<%= Math.round((c / view.hourly_max) * 100) %>%"></span><span class="vbar__label"><%= h % 3 === 0 ? h : '' %></span></div><% }); %>
+    </div>
+    <p class="muted small">회색 배경은 야간 구간(<%= ns %>~<%= String(ne).padStart(2, '0') %>시)</p>
+  </section>
+
+  <section class="print-section">
+    <h2>요일 × 시간대</h2>
+    <table class="heatmap heatmap--print">
+      <thead><tr><th></th><% for (let h = 0; h < 24; h += 1) { %><th><%= h % 3 === 0 ? h : '' %></th><% } %></tr></thead>
+      <tbody>
+        <% s.heatmap.forEach((row, d) => { const max = Math.max(1, ...s.heatmap.flat()); %>
+          <tr><th><%= days[d] %></th><% row.forEach((c, h) => { const level = c === 0 ? 0 : Math.min(4, Math.ceil((c / max) * 4)); %><td class="heatmap__cell level-<%= level %><%= isNight(h) ? ' is-night' : '' %>"></td><% }); %></tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </section>
+
+  <% if (s.memos.length) { %>
+  <section class="print-section">
+    <h2>사용자 메모</h2>
+    <ul class="memo-list"><% s.memos.forEach((m) => { %><li><%= m.at_label %> · <%= m.source_label %> · <%= m.memo %></li><% }); %></ul>
+  </section>
+  <% } %>
+
+  <footer class="print-foot">
+    <p>기준: 국토교통부·기후에너지환경부 「공동주택 층간소음의 범위와 기준에 관한 규칙」 별표(2023-01-02 시행). 직접충격음 1분 등가소음도 주간 39dB(A)/야간 34dB(A), 최고소음도 57/52dB(A)(1시간 3회 이상 초과 시). 공기전달음 5분 등가소음도 45/40dB(A). 2005-06-30 이전 사업승인·건축허가 공동주택은 직접충격음에 2dB(A) 가산.<% if (view.settings.legacy_building) { %> 이 리포트는 가산 기준을 적용했습니다.<% } %></p>
+    <p>이웃사이센터 방문상담·소음측정 결과서는 중재상담 목적으로만 쓰이며, 이 앱의 기록은 그보다도 낮은 참고 자료입니다.</p>
+    <p>이 기록은 스마트폰 마이크로 측정한 참고값으로 공인 측정이 아니며 법적 증거가 아닙니다. 녹음은 저장하지 않으며 소음원 분류 결과와 데시벨, 시각만 기록합니다. 발생 위치는 기술적으로 판별하지 않습니다.</p>
+    <p>소음 분류 모델: Google YAMNet (AudioSet) · TensorFlow.js — Apache License 2.0</p>
+  </footer>
+</article>
+<script>if (location.search.indexOf('autoprint=1') !== -1) { window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); }); }</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+ls .claude/skills
+node_modules/
+.env
+db/*.json
+!db/thresholds.json
+!db/.gitkeep
+src/public/models/yamnet/*.bin
+coverage/
+.DS_Store
+npm-debug.log*

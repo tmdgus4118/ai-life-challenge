@@ -1,0 +1,139 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<main id="main" class="main main--wide">
+  <%- include('../partials/notice') %>
+
+  <section class="week-nav" aria-label="주 선택">
+    <a class="icon-btn" href="/records?week=<%= view.prev_week %><%= view.source ? '&source=' + view.source : '' %>" aria-label="이전 주"><%- icon('chevron-left') %></a>
+    <div class="week-nav__label">
+      <strong><%= view.week_start.replace(/-/g, '.') %> ~ <%= view.week_end.slice(5).replace('-', '.') %></strong>
+      <span class="muted small"><%= view.is_current_week ? '이번 주' : '' %></span>
+    </div>
+    <a class="icon-btn" href="/records?week=<%= view.next_week %><%= view.source ? '&source=' + view.source : '' %>" aria-label="다음 주" <%= view.is_current_week ? 'aria-disabled="true"' : '' %>><%- icon('chevron-right') %></a>
+  </section>
+
+  <div class="chips" role="group" aria-label="소음원 필터">
+    <a class="chip<%= !view.source ? ' is-active' : '' %>" href="/records?week=<%= view.week_start %>">전체</a>
+    <% sourceGroups.forEach((g) => { %>
+      <a class="chip<%= view.source === g.key ? ' is-active' : '' %>" href="/records?week=<%= view.week_start %>&source=<%= g.key %>"><%- icon(g.icon, 'ico--sm') %> <%= g.label %></a>
+    <% }); %>
+  </div>
+
+  <section class="card" aria-labelledby="heatmapTitle">
+    <div class="card__head">
+      <h2 class="card__title" id="heatmapTitle">요일 × 시간대 히트맵</h2>
+      <span class="muted small"><% if (view.demo) { %><span class="badge badge--demo">데모 <%= view.demo %>건</span> <% } %>총 <%= view.total %>건 · 초과 <%= view.exceeded %>건</span>
+    </div>
+    <p class="muted small heatmap__hint">칸을 누르면 그 요일·시간대 사건만 아래에 표시됩니다.</p>
+    <% const days = ['월', '화', '수', '목', '금', '토', '일']; const isNight = (h) => constants && (settings.night_start < settings.night_end ? (h >= settings.night_start && h < settings.night_end) : (h >= settings.night_start || h < settings.night_end)); %>
+    <div class="heatmap-wrap">
+      <table class="heatmap" aria-label="요일별 시간대 사건 수">
+        <thead>
+          <tr><th scope="col" class="heatmap__corner"></th>
+          <% for (let h = 0; h < 24; h += 1) { %><th scope="col" class="<%= isNight(h) ? 'is-night' : '' %>"><% if (h % 6 === 0) { %><span class="heatmap__hour"><%= h %>시</span><% } %></th><% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% view.heatmap.forEach((row, d) => { %>
+            <tr>
+              <th scope="row"><%= days[d] %></th>
+              <% row.forEach((count, h) => { const level = count === 0 ? 0 : Math.min(4, Math.ceil((count / Math.max(1, view.heatmap_max)) * 4)); %>
+                <td class="heatmap__cell level-<%= level %><%= isNight(h) ? ' is-night' : '' %>" title="<%= days[d] %> <%= h %>시 · <%= count %>건" data-count="<%= count %>" data-day="<%= d %>" data-hour="<%= h %>" role="<%= count ? 'button' : 'cell' %>" <%= count ? 'tabindex="0"' : '' %>><span class="sr-only"><%= count %>건</span></td>
+              <% }); %>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <div class="heatmap__legend">
+      <span>적음</span><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>많음</span>
+      <span class="heatmap__legend-night"><i></i>야간(<%= settings.night_start %>~<%= String(settings.night_end).padStart(2, '0') %>시)</span>
+    </div>
+  </section>
+
+  <div class="cell-filter" id="cellFilter" hidden>
+    <span id="cellFilterLabel"></span>
+    <button type="button" class="btn btn--small btn--ghost" id="cellFilterClear">필터 해제</button>
+  </div>
+
+  <section class="card" aria-labelledby="listTitle">
+    <div class="card__head">
+      <h2 class="card__title" id="listTitle">사건 목록</h2>
+      <div class="card__actions">
+        <a class="btn btn--small btn--ghost" aria-label="이 주 사건 CSV 내려받기" href="/api/events/export.csv?from=<%= view.week_start %>T00:00:00%2B09:00&to=<%= view.next_week %>T00:00:00%2B09:00<%= view.source ? '&source=' + view.source : '' %>" download><%- icon('download', 'ico--sm') %> CSV</a>
+      </div>
+    </div>
+    <p class="muted small">탭하면 상세·메모 · 왼쪽으로 밀면 삭제 · CSV는 관리사무소·센터 제출용</p>
+    <% if (view.by_date.length === 0) { %>
+      <p class="event-list__empty">
+        <svg class="empty-art" viewBox="0 0 120 80" aria-hidden="true"><rect x="14" y="14" width="92" height="56" rx="8" fill="var(--krds-primary-5)"/><g fill="var(--krds-primary-10)"><rect x="24" y="24" width="12" height="10" rx="2"/><rect x="40" y="24" width="12" height="10" rx="2"/><rect x="56" y="24" width="12" height="10" rx="2"/><rect x="72" y="24" width="12" height="10" rx="2"/><rect x="24" y="38" width="12" height="10" rx="2"/><rect x="40" y="38" width="12" height="10" rx="2"/><rect x="56" y="38" width="12" height="10" rx="2"/><rect x="72" y="38" width="12" height="10" rx="2"/><rect x="24" y="52" width="12" height="10" rx="2"/><rect x="40" y="52" width="12" height="10" rx="2"/><rect x="56" y="52" width="12" height="10" rx="2"/><rect x="72" y="52" width="12" height="10" rx="2"/></g><rect x="88" y="38" width="12" height="10" rx="2" fill="var(--krds-primary-50)"/></svg>
+        이 주에는 <%= view.source ? '해당 소음원의 ' : '' %>기록된 사건이 없습니다.<br><a class="link" href="/detect">감지 화면에서 기록을 시작</a>하거나 <a class="link" href="/settings#data">설정에서 데모 데이터</a>를 불러올 수 있습니다.
+      </p>
+    <% } %>
+    <% view.by_date.forEach((group) => { %>
+      <h3 class="date-head"><%= group.label %> <span class="muted small"><%= group.events.length %>건</span></h3>
+      <ul class="event-list event-list--swipe">
+        <% group.events.forEach((e) => { %>
+          <li class="event-item swipe-item" data-id="<%= e.id %>" data-day="<%= e.weekday_index %>" data-hour="<%= e.hour %>" data-event='<%- JSON.stringify({ id: e.id, source_label: e.source_label, source_icon: e.source_icon, source_group: e.source_group, date_label: e.date_label, time_label: e.time_label, duration_label: e.duration_label, duration_sec: e.duration_sec, avg_db: e.avg_db, max_db: e.max_db, is_night: e.is_night, exceeded: e.exceeded, exceeded_rule: e.exceeded_rule, memo: e.memo || "", confidence: e.confidence, db_series: e.db_series || null, vibration_sec: e.vibration_sec ?? null, vibration_peak_mg: e.vibration_peak_mg ?? null, vibration_series: e.vibration_series || null }).replace(/'/g, "&#39;") %>'>
+            <div class="swipe-item__action" aria-hidden="true">삭제</div>
+            <div class="swipe-item__content">
+              <button type="button" class="event-item__link detail-trigger" data-id="<%= e.id %>" aria-label="<%= e.source_label %> 사건 상세">
+                <span class="event-item__icon" aria-hidden="true"><%- icon(e.source_icon) %></span>
+                <span class="event-item__body">
+                  <span class="event-item__title"><%= e.time_label %> · <%= e.source_label %> <span class="muted small"><%= e.duration_label %></span><% if (e.is_demo) { %> <span class="badge badge--demo">데모</span><% } %></span>
+                  <span class="event-item__meta">평균 <%= e.avg_db %>dB · 최고 <%= e.max_db %>dB<%= e.is_night ? ' · 야간' : ' · 주간' %><% if (e.has_vibration) { %> · <span class="vib-tag"><%- icon('vibration', 'ico--sm') %>진동 동반</span><% } %></span>
+                  <span class="event-item__memo<%= e.memo ? '' : ' is-empty' %>" data-role="memo"><% if (e.memo) { %><%- icon('pencil', 'ico--sm') %> <%= e.memo %><% } else { %>메모 추가<% } %></span>
+                </span>
+                <span class="badge <%= e.exceeded ? 'badge--danger' : 'badge--ok' %>" title="<%= e.exceeded_rule || '' %>"><%= e.exceeded ? '초과' : '이내' %></span>
+              </button>
+              <button type="button" class="icon-btn icon-btn--danger delete-trigger" data-id="<%= e.id %>" aria-label="사건 삭제"><%- icon('close', 'ico--sm') %></button>
+            </div>
+          </li>
+        <% }); %>
+      </ul>
+    <% }); %>
+  </section>
+</main>
+
+<div class="modal modal--sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle" hidden>
+  <div class="modal__panel sheet">
+    <div class="sheet__grip" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <span class="event-item__icon" id="detailIcon" aria-hidden="true"></span>
+      <div>
+        <h2 class="modal__title" id="detailTitle"></h2>
+        <p class="muted small" id="detailSub"></p>
+      </div>
+      <span class="badge" id="detailBadge"></span>
+    </div>
+    <figure class="spark">
+      <svg viewBox="0 0 320 110" class="spark__svg" id="detailSpark" role="img" aria-label="사건 구간 1초 단위 데시벨"></svg>
+      <figcaption class="muted small" id="detailSparkCaption"></figcaption>
+    </figure>
+    <dl class="kv kv--grid" id="detailKv"></dl>
+    <form id="memoForm" class="sheet__memo">
+      <label class="field"><span>한 줄 메모 <span class="muted small">(리포트에 함께 표시)</span></span>
+        <input type="text" class="input" id="memoInput" maxlength="200" placeholder="예: 아이가 깨어남" autocomplete="off">
+      </label>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost btn--small icon-btn--danger" id="detailDelete">삭제</button>
+        <button type="button" class="btn btn--ghost" id="memoCancel">닫기</button>
+        <button type="submit" class="btn btn--primary">메모 저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteTitle" hidden>
+  <div class="modal__panel">
+    <h2 class="modal__title" id="deleteTitle">이 사건을 삭제할까요?</h2>
+    <p class="muted small">잘못 기록된 사건만 삭제해 주세요. 삭제한 기록은 되돌릴 수 없습니다.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="deleteCancel">취소</button>
+      <button type="button" class="btn btn--danger" id="deleteConfirm">삭제</button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/js/records.js'] }) %>

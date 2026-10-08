@@ -1,0 +1,37 @@
+[
+  {
+    "id": "impact-avg1min",
+    "source_type": "impact",
+    "source_type_label": "직접충격음",
+    "metric": "avg1min",
+    "metric_label": "1분 등가소음도",
+    "day_db": 39,
+    "night_db": 34,
+    "legacy_bonus_db": 2,
+    "source": "국토교통부·기후에너지환경부 「공동주택 층간소음의 범위와 기준에 관한 규칙」 별표 (2023-01-02 시행)",
+    "note": "2005-06-30 이전 사업승인 공동주택·건축허가 공동주택은 2025-01-01부터 2dB(A) 가산 (별표 비고 2)"
+  },
+  {
+    "id": "impact-max",
+    "source_type": "impact",
+    "source_type_label": "직접충격음",
+    "metric": "max",
+    "metric_label": "최고소음도",
+    "day_db": 57,
+    "night_db": 52,
+    "legacy_bonus_db": 2,
+    "min_count_per_hour": 3,
+    "source": "국토교통부·기후에너지환경부 「공동주택 층간소음의 범위와 기준에 관한 규칙」 별표 (2023-01-02 시행)",
+    "note": "1시간에 3회 이상 초과할 때 기준 초과 (별표 비고 5). 오래된 단지는 2dB(A) 가산"
+  },
+  {
+    "id": "airborne-avg5min",
+    "source_type": "airborne",
+    "source_type_label": "공기전달음",
+    "metric": "avg5min",
+    "metric_label": "5분 등가소음도",
+    "day_db": 45,
+    "night_db": 40,
+    "source": "국토교통부·기후에너지환경부 「공동주택 층간소음의 범위와 기준에 관한 규칙」 별표 (2023-01-02 시행)"
+  }
+]

@@ -1,0 +1,12 @@
+<%- include('../partials/head', { title, page: 'error' }) %>
+<%- include('../partials/header', { title: '오류' }) %>
+<main id="main" class="main">
+  <section class="card card--center">
+    <p class="error-code"><%= status %></p>
+    <h2 class="card__title">문제가 발생했습니다</h2>
+    <p class="muted"><%= message %></p>
+    <a class="btn btn--primary" href="/detect">감지 화면으로</a>
+  </section>
+</main>
+<%- include('../partials/tabbar', { page: 'error' }) %>
+<%- include('../partials/footer') %>

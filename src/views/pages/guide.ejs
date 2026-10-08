@@ -1,0 +1,129 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<% const g = guide; %>
+<main id="main" class="main">
+  <section class="emergency" role="alert" aria-labelledby="emTitle">
+    <div class="emergency__body">
+      <h2 class="emergency__title" id="emTitle"><%= g.emergency.title %></h2>
+      <p><%= g.emergency.description %></p>
+    </div>
+    <a class="btn btn--danger emergency__call" href="tel:<%= g.emergency.phone %>"><%- icon('phone') %><%= g.emergency.phone %></a>
+  </section>
+
+  <p class="notice" role="note">
+    <svg class="notice__icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v5M10 13.5v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span><%= g.disclaimer %> (확인 기준일 <%= g.checked_at %>)</span>
+  </p>
+
+  <nav class="toc" aria-label="안내 목차">
+    <a href="#safety">안전 수칙</a><a href="#stages">단계별 대응</a><a href="#agencies">조정 기관</a><a href="#risky">처벌될 수 있는 행동</a><a href="#laws">관련 법령</a><a href="#civil">손해배상</a>
+  </nav>
+
+  <section class="card card--danger-soft" id="safety" aria-labelledby="safetyTitle">
+    <h2 class="card__title" id="safetyTitle">꼭 지켜야 할 안전 수칙</h2>
+    <ol class="rule-list">
+      <% g.safety_rules.forEach((r) => { %>
+        <li><strong><%= r.title %></strong><span><%= r.detail %></span></li>
+      <% }); %>
+    </ol>
+  </section>
+
+  <section class="card" id="stages" aria-labelledby="stagesTitle">
+    <h2 class="card__title" id="stagesTitle">단계별 대응</h2>
+    <p class="muted small">대화에서 시작해 공식 절차로 한 단계씩 올라갑니다. 단계를 건너뛰어 바로 신고·소송으로 가면 갈등이 커지기 쉽습니다.</p>
+    <ol class="stage-list">
+      <% g.stages.forEach((st) => { %>
+        <li class="stage">
+          <details <%= st.step === 1 ? 'open' : '' %>>
+            <summary>
+              <span class="step__num" aria-hidden="true"><%= st.step %></span>
+              <span class="stage__head"><strong><%= st.title %></strong><span class="muted small"><%= st.when %></span></span>
+            </summary>
+            <div class="stage__body">
+              <ul class="bullets"><% st.actions.forEach((a) => { %><li><%= a %></li><% }); %></ul>
+              <% if (st.basis) { %><p class="stage__basis"><span class="badge badge--ok">근거</span> <%= st.basis %></p><% } %>
+              <% if (st.contacts && st.contacts.length) { %>
+                <div class="center-box__actions">
+                  <% st.contacts.forEach((c) => { %>
+                    <% if (c.phone) { %><a class="btn btn--small btn--secondary" href="tel:<%= c.phone.replace(/-/g, '') %>"><%- icon('phone', 'ico--sm') %><%= c.name %> <%= c.phone %></a><% } %>
+                    <% if (c.url) { %><a class="btn btn--small btn--ghost" href="<%= c.url %>" target="_blank" rel="noopener"><%= c.name %><%- icon('external', 'ico--sm') %></a><% } %>
+                  <% }); %>
+                </div>
+              <% } %>
+            </div>
+          </details>
+        </li>
+      <% }); %>
+    </ol>
+  </section>
+
+  <section class="card" id="agencies" aria-labelledby="agTitle">
+    <h2 class="card__title" id="agTitle">상담·조정 기관</h2>
+    <ul class="agency-list">
+      <% g.agencies.forEach((a) => { %>
+        <li class="agency">
+          <div class="agency__head"><strong><%= a.title %></strong><% if (a.phone) { %> <a class="link" href="tel:<%= a.phone.replace(/-/g, '') %>"><%= a.phone %></a><% } %></div>
+          <p class="small"><%= a.role %></p>
+          <% if (a.cost) { %><p class="muted small">비용: <%= a.cost %></p><% } %>
+          <% if (a.basis) { %><p class="muted small">근거: <%= a.basis %></p><% } %>
+          <a class="link small" href="<%= a.url || a.source_url %>" target="_blank" rel="noopener">안내 페이지<%- icon('external') %></a>
+        </li>
+      <% }); %>
+    </ul>
+  </section>
+
+  <section class="card" id="risky" aria-labelledby="riskyTitle">
+    <h2 class="card__title" id="riskyTitle">피해자도 처벌될 수 있는 행동</h2>
+    <p class="muted small">참다못해 한 행동이 범죄가 되어 오히려 가해자가 되는 경우가 많습니다. 아래 행동은 하지 마세요.</p>
+    <ul class="risk-list">
+      <% g.risky_acts.forEach((r) => { %>
+        <li class="risk">
+          <div class="risk__head"><strong><%= r.title %></strong><span class="badge badge--danger"><%= r.law %></span></div>
+          <p class="small"><%= r.example %></p>
+          <p class="small risk__penalty"><%= r.penalty %></p>
+          <% if (r.case) { %><p class="muted small">사례: <%= r.case %></p><% } %>
+          <a class="link small" href="<%= r.source_url %>" target="_blank" rel="noopener">법령·판례 보기<%- icon('external') %></a>
+        </li>
+      <% }); %>
+    </ul>
+  </section>
+
+  <section class="card" id="laws" aria-labelledby="lawsTitle">
+    <h2 class="card__title" id="lawsTitle">관련 법령</h2>
+    <table class="table">
+      <thead><tr><th>법령·조문</th><th>내용</th></tr></thead>
+      <tbody>
+        <% g.laws.forEach((l) => { %>
+          <tr>
+            <td><a class="link" href="<%= l.source_url %>" target="_blank" rel="noopener"><%= l.title %></a><% if (l.article) { %><br><span class="muted small"><%= l.article %></span><% } %></td>
+            <td><%= l.summary %><% if (l.effective) { %><br><span class="muted small"><%= l.effective %></span><% } %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </section>
+
+  <% if (g.civil) { %>
+  <section class="card" id="civil" aria-labelledby="civilTitle">
+    <h2 class="card__title" id="civilTitle"><%= g.civil.title %></h2>
+    <ul class="bullets"><% g.civil.items.forEach((c) => { %><li><strong><%= c.title %></strong> <%= c.detail %></li><% }); %></ul>
+    <% if (g.civil.source_url) { %><a class="link small" href="<%= g.civil.source_url %>" target="_blank" rel="noopener">근거 보기<%- icon('external') %></a><% } %>
+  </section>
+  <% } %>
+
+  <% if (g.free_legal_help && g.free_legal_help.length) { %>
+  <section class="card card--soft" aria-labelledby="helpTitle">
+    <h2 class="card__title" id="helpTitle">무료 법률 상담</h2>
+    <ul class="bullets">
+      <% g.free_legal_help.forEach((h) => { %><li><strong><%= h.title %></strong> <% if (h.phone) { %><a class="link" href="tel:<%= h.phone.replace(/-/g, '') %>"><%= h.phone %></a><% } %> <% if (h.url) { %><a class="link small" href="<%= h.url %>" target="_blank" rel="noopener" aria-label="<%= h.title %> 바로가기"><%- icon('external') %></a><% } %> <span class="muted small"><%= h.detail || '' %></span></li><% }); %>
+    </ul>
+  </section>
+  <% } %>
+
+  <div class="action-row">
+    <a class="btn btn--secondary" href="/report">기록 리포트 보기</a>
+    <a class="btn btn--primary" href="/mediate">중재 메시지 만들기</a>
+  </div>
+</main>
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer') %>

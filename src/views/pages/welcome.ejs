@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<main id="main" class="main welcome">
+  <section class="welcome__hero" aria-labelledby="welcomeTitle">
+    <h2 class="welcome__title" id="welcomeTitle">시끄럽다는 말 대신,<br>기록으로 이웃과 대화하세요</h2>
+    <p class="welcome__lead">스마트폰을 바닥에 두면 AI가 어떤 소리가 언제 기준을 넘었는지 정리하고, 이웃에게 건넬 정중한 글까지 써 줍니다.</p>
+    <figure class="welcome__dial" aria-labelledby="exampleCaption">
+      <%- dial.build({ hourly: example.hourly, hourlyExceeded: example.exceeded, nightStart: 22, nightEnd: 6 }) %>
+      <figcaption id="exampleCaption" class="muted small">예시 기록: 평일 밤 22~23시에 발걸음이 몰린 일주일. 빨간 막대는 기준을 넘은 사건, 음영 부분은 야간입니다.</figcaption>
+    </figure>
+  </section>
+
+  <section class="card flow" aria-labelledby="flowTitle">
+    <h2 class="card__title" id="flowTitle">세 단계로 끝납니다</h2>
+    <ol class="flow__list">
+      <li class="flow__step">
+        <span class="flow__icon"><%- icon('mic') %></span>
+        <div><strong>듣기</strong><p>폰 안의 AI가 발걸음, 가구, 망치, 반려동물, 악기, 말소리를 구분하고, 가속도 센서로 바닥 진동도 함께 잽니다.</p></div>
+      </li>
+      <li class="flow__step">
+        <span class="flow__icon"><%- icon('scale') %></span>
+        <div><strong>기록</strong><p>공동주택 층간소음 기준(주간 39dB·야간 34dB 등)과 비교해 넘은 소리만 사건으로 남깁니다.</p></div>
+      </li>
+      <li class="flow__step">
+        <span class="flow__icon"><%- icon('send') %></span>
+        <div><strong>대화</strong><p>감정 없는 리포트와 이웃·관리사무소·이웃사이센터용 메시지 초안을 만듭니다. 보내는 건 직접 합니다.</p></div>
+      </li>
+    </ol>
+  </section>
+
+  <p class="promise"><%- icon('lock') %><span><strong>녹음은 저장하지 않습니다.</strong> 소리는 폰 안에서 분류한 뒤 버리고, 소음원·dB·시각만 기록합니다. 회원가입도 없습니다.</span></p>
+
+  <div class="welcome__actions">
+    <button type="button" class="btn btn--primary btn--block" id="demoStart"><%- icon('spark') %>데모 기록으로 둘러보기</button>
+    <a class="btn btn--secondary btn--block" href="/detect"><%- icon('mic') %>바로 감지 시작</a>
+  </div>
+  <p class="muted small welcome__note">심사위원께: 마이크 없이도 데모 기록(35일치)으로 리포트·AI 요약·기록에게 묻기·중재 메시지까지 전체 흐름을 볼 수 있습니다. 감지 화면의 "소리 파일로 AI 체험"에 발소리나 개 짖는 소리 파일을 넣으면 분류 AI를 바로 확인할 수 있습니다.</p>
+</main>
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/js/welcome.js'] }) %>

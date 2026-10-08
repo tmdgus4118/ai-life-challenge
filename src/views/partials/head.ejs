@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="<%= typeof theme !== 'undefined' ? theme : 'light' %>" data-text="<%= typeof userSettings !== 'undefined' && userSettings && userSettings.text_size === 'large' ? 'large' : 'normal' %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="<%= typeof theme !== 'undefined' && theme === 'dark' ? '#0E1524' : '#F1F3F6' %>">
+  <meta name="description" content="이웃소리 - 시끄럽다는 말 대신, AI가 정리한 기록으로 이웃과 대화하세요. 층간소음 AI 기록·중재 서비스">
+  <title><%= title %> · 이웃소리</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/icon.svg">
+  <link rel="stylesheet" href="/fonts/pretendardvariable-gov-dynamic-subset.css">
+  <link rel="stylesheet" href="/css/style.css?v=<%= assetVersion %>">
+</head>
+<body class="page-<%= page %>">
+<%- iconSprite %>
+<a class="skip-link" href="#main">본문 바로가기</a>

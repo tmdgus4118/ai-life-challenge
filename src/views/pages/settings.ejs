@@ -1,0 +1,148 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<main id="main" class="main" data-settings='<%- JSON.stringify(settings) %>'>
+
+  <form class="card" id="settingsForm" aria-labelledby="roleTitle">
+    <h2 class="card__title" id="roleTitle">사용 방식</h2>
+    <div class="choice" role="radiogroup" aria-labelledby="roleTitle">
+      <% constants.ROLES.forEach((r) => { %>
+        <label class="choice__item">
+          <input type="radio" name="role" value="<%= r.key %>" <%= settings.role === r.key ? 'checked' : '' %>>
+          <span><strong><%= r.label %></strong><br><span class="muted small"><%= r.description %></span></span>
+        </label>
+      <% }); %>
+    </div>
+    <label class="check">
+      <input type="checkbox" name="care_alert" <%= settings.care_alert ? 'checked' : '' %>>
+      <span><strong>배려 알림</strong> <span class="muted small">(소음을 내는 쪽)</span><br><span class="muted small">감지 중 우리 집 소리가 지금 시간대 기준에 가까워지면 화면과 진동으로 바로 알려 줍니다. 우리 집에서 잰 값이라 아랫집에 들리는 크기와 다를 수 있습니다.</span></span>
+    </label>
+
+    <h2 class="card__title card__title--gap">화면</h2>
+    <div class="choice choice--row" role="radiogroup" aria-label="화면 테마">
+      <% constants.THEMES.forEach((t) => { %>
+        <label class="choice__item choice__item--compact">
+          <input type="radio" name="theme" value="<%= t.key %>" <%= settings.theme === t.key ? 'checked' : '' %>>
+          <span><strong><%= t.label %></strong></span>
+        </label>
+      <% }); %>
+    </div>
+    <p class="muted small">야간 자동은 아래 야간 시간대에 어두운 화면으로 바뀝니다. 불 꺼진 방에서 눈이 덜 부십니다.</p>
+
+    <h2 class="card__title card__title--gap">글자 크기</h2>
+    <div class="choice choice--row" role="radiogroup" aria-label="글자 크기">
+      <label class="choice__item choice__item--compact"><input type="radio" name="text_size" value="normal" <%= settings.text_size !== 'large' ? 'checked' : '' %>><span><strong>보통</strong></span></label>
+      <label class="choice__item choice__item--compact"><input type="radio" name="text_size" value="large" <%= settings.text_size === 'large' ? 'checked' : '' %>><span><strong style="font-size:1.15em">크게</strong></span></label>
+    </div>
+
+    <h2 class="card__title card__title--gap" id="timeTitle">야간 시간</h2>
+    <p class="muted small">기본 22~06시. 야간에는 더 낮은 기준(직접충격음 34dB, 공기전달음 40dB)이 적용됩니다.</p>
+    <div class="field-row">
+      <label class="field"><span>시작</span>
+        <select class="select" name="night_start"><% for (let h = 0; h < 24; h += 1) { %><option value="<%= h %>" <%= settings.night_start === h ? 'selected' : '' %>><%= String(h).padStart(2, '0') %>시</option><% } %></select>
+      </label>
+      <label class="field"><span>종료</span>
+        <select class="select" name="night_end"><% for (let h = 0; h < 24; h += 1) { %><option value="<%= h %>" <%= settings.night_end === h ? 'selected' : '' %>><%= String(h).padStart(2, '0') %>시</option><% } %></select>
+      </label>
+    </div>
+
+    <label class="check">
+      <input type="checkbox" name="legacy_building" <%= settings.legacy_building ? 'checked' : '' %>>
+      <span><strong>오래된 단지 기준 적용</strong><br><span class="muted small">2005년 6월 30일 이전에 사업승인을 받은 아파트이거나 건축허가를 받은 공동주택(다세대 등)이면 켜 주세요. 직접충격음 기준에 2dB가 더해집니다(층간소음 기준 규칙 별표 비고 2, 2025년 1월부터).</span></span>
+    </label>
+    <p class="muted small">설정 변경은 새로 기록되는 사건부터 적용됩니다.</p>
+
+    <h2 class="card__title card__title--gap">민감도</h2>
+    <label class="field field--range">
+      <span>사건으로 잡는 최소 지속시간: <strong><output id="minDurationOut"><%= settings.min_duration_sec %></output>초</strong> <span class="muted small">(기본 <%= defaults.min_duration_sec %>초)</span></span>
+      <input type="range" class="range" name="min_duration_sec" min="1" max="30" step="1" value="<%= settings.min_duration_sec %>" oninput="document.getElementById('minDurationOut').value=this.value">
+    </label>
+    <label class="field field--range">
+      <span>사건 종료로 보는 조용한 시간: <strong><output id="quietOut"><%= settings.quiet_end_sec %></output>초</strong> <span class="muted small">(기본 <%= defaults.quiet_end_sec %>초)</span></span>
+      <input type="range" class="range" name="quiet_end_sec" min="3" max="60" step="1" value="<%= settings.quiet_end_sec %>" oninput="document.getElementById('quietOut').value=this.value">
+    </label>
+    <label class="field">
+      <span>분류 주기 <span class="muted small">(아이폰 사파리 등에서 느리면 2~3초로)</span></span>
+      <select class="select" name="classify_interval_sec"><% [1, 2, 3].forEach((v) => { %><option value="<%= v %>" <%= settings.classify_interval_sec === v ? 'selected' : '' %>><%= v %>초</option><% }); %></select>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="vibration_enabled" <%= settings.vibration_enabled ? 'checked' : '' %>>
+      <span><strong>바닥 진동 함께 측정</strong><br><span class="muted small">폰을 바닥에 평평하게 두면 가속도 센서로 바닥 진동도 잽니다. 소리와 진동이 함께 잡힌 사건은 "진동 동반"으로 표시되어 직접충격(발걸음·쿵 소리)의 근거가 됩니다. 센서 값만 쓰고 저장하지 않습니다.</span></span>
+    </label>
+    <label class="field field--range">
+      <span>분류 신뢰도 하한: <strong><output id="confOut"><%= settings.confidence_threshold %></output></strong> <span class="muted small">(미만이면 "기타"로 처리, 기본 <%= defaults.confidence_threshold %>)</span></span>
+      <input type="range" class="range" name="confidence_threshold" min="0.1" max="0.9" step="0.05" value="<%= settings.confidence_threshold %>" oninput="document.getElementById('confOut').value=this.value">
+    </label>
+
+    <h2 class="card__title card__title--gap">마이크 보정</h2>
+    <p class="muted small">기기마다 마이크 감도가 달라 공인 소음계와 차이가 납니다. 조용한 방에서 10초 측정하면 그 값이 약 30dB가 되도록 오프셋을 저장합니다.</p>
+    <div class="field-row field-row--end">
+      <label class="field"><span>보정 오프셋 (dB)</span><input class="input" type="number" name="db_offset" step="0.1" min="40" max="140" value="<%= settings.db_offset %>"></label>
+      <button type="button" class="btn btn--secondary" id="calibrateBtn">조용한 방에서 10초 측정</button>
+    </div>
+    <div class="calib" id="calibBox" hidden>
+      <div class="progress"><span class="progress__bar" id="calibProgress"></span></div>
+      <p class="muted small" id="calibText">측정 중… 조용히 기다려 주세요.</p>
+    </div>
+
+    <div class="action-row">
+      <button type="submit" class="btn btn--primary btn--block">설정 저장</button>
+    </div>
+  </form>
+
+  <section class="card" id="data" aria-labelledby="dataTitle">
+    <h2 class="card__title" id="dataTitle">데이터</h2>
+    <div class="data-row">
+      <div><strong>데모 데이터 불러오기</strong><p class="muted small">최근 35일치 모의 사건 약 400건을 넣습니다. 평일 밤 발걸음, 저녁 TV·피아노, 낮 시간 개 짖음, 주말 가구 소리, 3주 전 공사 소리가 섞여 있고 최근으로 올수록 늘어납니다.</p></div>
+      <button type="button" class="btn btn--secondary" id="demoBtn">불러오기</button>
+    </div>
+    <div class="data-row">
+      <div><strong>분류 정확도 측정</strong><p class="muted small">공개 음원으로 AI 분류가 맞는지 직접 확인하고 소음원별 정확도를 모읍니다.</p></div>
+      <a class="btn btn--secondary" href="/lab">측정하기</a>
+    </div>
+    <div class="data-row">
+      <div><strong>전체 기록 삭제</strong><p class="muted small">사건·리포트·메시지·설정·정확도 측정 기록을 모두 지웁니다. 되돌릴 수 없습니다.</p></div>
+      <button type="button" class="btn btn--danger" id="deleteAllBtn">전체 삭제</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="privacyTitle">
+    <h2 class="card__title" id="privacyTitle">개인정보 안내</h2>
+    <ul class="bullets">
+      <li><strong>녹음을 저장하지 않습니다.</strong> 소리는 폰 안에서 분류한 뒤 바로 버려지고, 말소리도 "말소리"라는 분류와 dB만 남습니다.</li>
+      <li>회원가입·위치·연락처를 수집하지 않습니다. 브라우저가 만든 익명 식별자와 사건 기록만 저장합니다.</li>
+      <li>측정값은 공인 측정이 아니며 대화를 위한 참고 기록입니다. 발생 위치는 기술적으로 판별하지 않습니다.</li>
+    </ul>
+    <h3 class="card__subtitle">저장 항목</h3>
+    <table class="table">
+      <thead><tr><th>항목</th><th>저장 내용</th></tr></thead>
+      <tbody><% storedItems.forEach((it) => { %><tr><td><%= it.item %></td><td><%= it.fields %></td></tr><% }); %></tbody>
+    </table>
+  </section>
+
+  <section class="card" aria-labelledby="thTitle">
+    <h2 class="card__title" id="thTitle">적용 기준표</h2>
+    <table class="table">
+      <thead><tr><th>소음 종류</th><th>측정 방식</th><th>주간</th><th>야간</th></tr></thead>
+      <tbody><% thresholds.forEach((t) => { %><tr><td><%= t.source_type_label %></td><td><%= t.metric_label %></td><td><%= t.day_db %>dB(A)</td><td><%= t.night_db %>dB(A)</td></tr><% if (t.note) { %><tr><td colspan="4" class="muted small"><%= t.note %></td></tr><% } %><% }); %></tbody>
+    </table>
+    <p class="muted small">주간 06~22시, 야간 22~06시. 공식 판정은 공정시험기준에 따른 측정으로 하며 이 앱의 기록은 공식 측정이 아닙니다.</p>
+    <p class="muted small">출처: <%= thresholds[0] ? thresholds[0].source : '' %></p>
+    <p class="muted small">소음 분류 모델: Google YAMNet (AudioSet 521 클래스) · TensorFlow.js — Apache License 2.0. 생성형 AI: <%= llmInfo.provider === 'template' ? '규칙 기반 작성기(오프라인)' : '외부 API 연결' %>.</p>
+    <p class="muted small">이웃소리 v<%= appVersion %> · 2026 AI 라이프 솔루션 챌린지 출품작 · <a class="link" href="/welcome">서비스 소개 다시 보기</a></p>
+  </section>
+</main>
+
+<div class="modal" id="deleteAllModal" role="dialog" aria-modal="true" aria-labelledby="delAllTitle" hidden>
+  <div class="modal__panel">
+    <h2 class="modal__title" id="delAllTitle">정말 전체 기록을 삭제할까요?</h2>
+    <p class="muted small">사건, 리포트, 메시지, 설정이 모두 삭제되며 되돌릴 수 없습니다. 계속하려면 아래에 <strong>삭제</strong>를 입력하세요.</p>
+    <input type="text" class="input" id="deleteAllConfirmInput" placeholder="삭제" autocomplete="off">
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="deleteAllCancel">취소</button>
+      <button type="button" class="btn btn--danger" id="deleteAllConfirm" disabled>전체 삭제</button>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/shared/decibel.js', '/js/settings.js'] }) %>

@@ -1,0 +1,107 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<% const v = view; %>
+<main id="main" class="main" data-recipient="<%= v.recipient %>" data-tone="<%= v.tone %>" data-max="<%= v.max_length %>">
+  <%- include('../partials/notice', { text: v.role === 'maker' ? '소음을 내는 쪽 모드: 우리 집 기록을 근거로 이웃과 관리사무소에 먼저 양해를 구하는 안내문을 만듭니다. 앱이 대신 보내지 않습니다.' : '메시지는 앱이 보내지 않습니다. 사용자가 복사해 직접 전달합니다. 항상 정중한 톤으로만 생성됩니다.' }) %>
+
+  <div class="segmented" role="tablist" aria-label="수신자">
+    <% v.recipients.forEach((r) => { %>
+      <a role="tab" class="segmented__item<%= v.recipient === r.key ? ' is-active' : '' %>" href="/mediate?recipient=<%= r.key %>&tone=<%= v.tone %>" aria-selected="<%= v.recipient === r.key %>"><%= r.label %></a>
+    <% }); %>
+  </div>
+
+  <div class="chips chips--center" role="radiogroup" aria-label="말투">
+    <% v.tones.forEach((t) => { %>
+      <a class="chip<%= v.tone === t.key ? ' is-active' : '' %>" role="radio" aria-checked="<%= v.tone === t.key %>" href="/mediate?recipient=<%= v.recipient %>&tone=<%= t.key %>"><%= t.label %></a>
+    <% }); %>
+  </div>
+
+  <section class="card" aria-labelledby="draftTitle">
+    <% if (v.demo_events) { %><p class="demo-note"><span class="badge badge--demo">데모</span> 최근 7일 기록 중 <%= v.demo_events %>건이 시연용 모의 데이터입니다. 실제 이웃에게 보내기 전에 데모 기록을 지우고 직접 감지한 기록으로 만드세요.</p><% } %>
+    <div class="card__head">
+      <h2 class="card__title" id="draftTitle"><%= v.recipients.find((r) => r.key === v.recipient).label %>용 메시지 초안 <span class="muted small"><%= v.recipients.find((r) => r.key === v.recipient).form %></span></h2>
+      <span class="muted small" id="charCount"><%= v.message ? v.message.body.length : 0 %>/<%= v.max_length %></span>
+    </div>
+    <div class="textarea ai-live" id="messageLive" aria-live="polite" hidden></div>
+    <textarea class="textarea" id="messageBody" rows="9" maxlength="<%= v.max_length %>" placeholder="아래 '초안 생성'을 누르면 최근 7일 기록을 바탕으로 사실 → 영향 → 부탁 순서의 초안이 만들어집니다. 직접 수정할 수 있습니다." aria-label="메시지 초안"><%= v.message ? v.message.body : '' %></textarea>
+    <p class="muted small" id="draftMeta"><%= v.message ? `${time.formatKorean(v.message.created_at)} 생성 · ${v.message.provider === 'template' ? '규칙 기반 작성' : 'AI 작성'}${v.message.fallback ? ' · 안전장치로 대체문 사용' : ''}` : '생성 후 감정·위협·비난 표현을 한 번 더 검사하고, 걸리면 다시 생성합니다.' %></p>
+    <div class="action-row action-row--tight">
+      <button type="button" class="btn btn--secondary" id="generateBtn"><%- icon('spark') %><span><%= v.message ? '다시 생성' : '초안 생성' %></span></button>
+      <button type="button" class="btn btn--primary" id="copyBtn" <%= v.message ? '' : 'disabled' %>><%- icon('copy') %>복사하기</button>
+    </div>
+    <div class="deliver" id="deliverRow" data-id="<%= v.message ? v.message.id : '' %>" <%= v.message ? '' : 'hidden' %>>
+      <label class="check check--inline">
+        <input type="checkbox" id="deliveredCheck" <%= v.message && v.message.delivered_at ? 'checked' : '' %>>
+        <span><strong>이 메시지를 전달했어요</strong><br><span class="muted small" id="deliveredLabel"><%= v.message && v.message.delivered_label ? v.message.delivered_label + ' 전달 · 이날부터 2주 동안 기록을 지켜봅니다' : '직접 보낸 뒤 체크하면 다음 단계 안내가 전달일 기준으로 바뀝니다' %></span></span>
+      </label>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="stepTitle" id="stepCard">
+    <h2 class="card__title" id="stepTitle">다음 단계 안내</h2>
+    <p class="step-note" id="stepNote"><%= v.next_step.note %></p>
+    <p class="step-note step-note--warn" id="scopeNote" <%= v.next_step.scope_note ? '' : 'hidden' %>><%= v.next_step.scope_note || '' %></p>
+    <ol class="steps" id="stepList">
+      <% v.next_step.steps.forEach((st) => { %>
+        <li class="step step--<%= st.status %>">
+          <span class="step__num" aria-hidden="true"><%= st.step %></span>
+          <div class="step__body">
+            <div class="step__title"><%= st.title %> <% if (st.status === 'current') { %><span class="badge badge--primary">현재 단계</span><% } else if (st.status === 'done') { %><span class="badge badge--ok">진행함</span><% } %></div>
+            <p class="step__desc"><%= st.description %></p>
+          </div>
+        </li>
+      <% }); %>
+    </ol>
+    <div class="center-box">
+      <div>
+        <strong><%= v.next_step.center.name %></strong>
+        <p class="muted small"><%= v.next_step.center.operator %> · <%= v.next_step.center.hours %> · <%= v.next_step.center.cost %></p>
+      </div>
+      <div class="center-box__actions">
+        <a class="btn btn--small btn--secondary" href="tel:<%= v.next_step.center.phone.replace(/-/g, '') %>"><%- icon('phone', 'ico--sm') %><%= v.next_step.center.phone %></a>
+        <a class="btn btn--small btn--ghost" href="<%= v.next_step.center.url %>" target="_blank" rel="noopener">신청 안내<%- icon('external', 'ico--sm') %></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="historyTitle">
+    <div class="card__head">
+      <h2 class="card__title" id="historyTitle">메시지 이력</h2>
+      <span class="muted small"><%= v.history.length %>건</span>
+    </div>
+    <% if (!v.history.length) { %>
+      <p class="muted small">아직 만든 메시지가 없습니다. 초안을 생성하면 여기에 남습니다.</p>
+    <% } else { %>
+      <ul class="history">
+        <% v.history.forEach((m) => { %>
+          <li class="history__item">
+            <details>
+              <summary>
+                <span class="history__who"><%= m.recipient_label %> · <%= m.tone_label %></span>
+                <span class="history__when muted small"><%= m.created_label %></span>
+                <% if (m.delivered_at) { %><span class="badge badge--ok"><%- icon('check', 'ico--sm') %>전달함</span><% } %>
+              </summary>
+              <p class="history__body"><%= m.body %></p>
+              <button type="button" class="btn btn--small btn--ghost history__copy" data-body="<%= m.body %>"><%- icon('copy', 'ico--sm') %>복사</button>
+            </details>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+  </section>
+
+  <a class="guide-link" href="/guide">
+    <span>대화로 안 될 때: 분쟁조정·법적 절차와 안전 수칙</span><%- icon('arrow-right') %>
+  </a>
+
+  <section class="card card--soft">
+    <h2 class="card__title">메시지 작성 원칙</h2>
+    <ul class="bullets">
+      <li>사실 → 영향 → 부탁 순서. 상대가 모를 수 있다는 전제로 씁니다.</li>
+      <li>"위층", "옆집" 대신 "기록된 소음"으로 쓰고 발생 위치를 단정하지 않습니다.</li>
+      <li>위협·비난·법적 경고 표현은 생성 단계와 검사 단계에서 모두 막습니다.</li>
+    </ul>
+  </section>
+</main>
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/js/ai-stream.js', '/js/mediate.js'] }) %>

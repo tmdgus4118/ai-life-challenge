@@ -1,0 +1,189 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<% const isMaker = settings.role === 'maker'; const careOn = isMaker && settings.care_alert; %>
+<main id="main" class="main main--wide"
+  data-settings='<%- JSON.stringify(settings) %>'
+  data-thresholds='<%- JSON.stringify(thresholds) %>'
+  data-model-url="<%= yamnetModelUrl %>">
+
+  <%- include('../partials/notice', { text: isMaker ? '우리 집 소리 자가 점검 · 녹음은 저장하지 않습니다' : '공인 측정 아님 · 녹음은 저장하지 않습니다' }) %>
+
+
+  <div class="split">
+    <div class="split__col">
+  <section class="card detect-card" id="detectCard" aria-live="polite">
+    <div class="detect-status" id="detectStatus">
+      <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+      <span id="statusText">녹음 버튼을 누르면 감지를 시작합니다</span>
+    </div>
+
+    <div class="source-display" id="sourceDisplay">
+      <div class="source-display__icon is-other" id="sourceIcon" aria-hidden="true"><%- icon('other', 'ico--xl') %></div>
+      <div class="source-display__text">
+        <div class="source-display__label" id="sourceLabel">소음원</div>
+        <div class="source-display__meta" id="sourceMeta">감지를 시작하면 AI가 소리를 구분합니다</div>
+      </div>
+    </div>
+
+    <% if (careOn) { %>
+    <div class="care-banner" id="careBanner" role="alert" hidden>
+      <span class="care-banner__icon" aria-hidden="true"><%- icon('bell') %></span>
+      <span class="care-banner__text"><strong id="careTitle"></strong><span id="careBody"></span></span>
+    </div>
+    <% } %>
+
+    <figure class="gauge" aria-label="데시벨 게이지">
+      <svg viewBox="0 0 200 120" class="gauge__svg" id="gaugeSvg" role="img" aria-labelledby="gaugeTitle">
+        <title id="gaugeTitle">현재 데시벨과 기준선</title>
+        <path class="gauge__track" d="M 20 110 A 80 80 0 0 1 180 110" />
+        <path class="gauge__fill" id="gaugeFill" d="M 20 110 A 80 80 0 0 1 180 110" />
+        <line class="gauge__limit" id="gaugeLimit" x1="100" y1="30" x2="100" y2="18" />
+        <text class="gauge__limit-text" id="gaugeLimitText" x="100" y="14" text-anchor="middle">기준 <%= currentLimit.limit %>dB</text>
+        <text class="gauge__min" x="20" y="118">20</text>
+        <text class="gauge__max" x="180" y="118" text-anchor="end">90</text>
+      </svg>
+      <figcaption class="gauge__value">
+        <span class="gauge__number is-idle" id="dbValue">—</span><span class="gauge__unit">dB</span>
+        <span class="level-word" id="levelWord" data-level="idle">대기 중</span>
+        <span class="gauge__limit-label" id="limitLabel"><%= currentLimit.is_night ? '야간' : '주간' %> 기준 <%= currentLimit.limit %>dB</span>
+      </figcaption>
+    </figure>
+    <div class="vib" id="vibRow" <%= settings.vibration_enabled ? '' : 'hidden' %>>
+      <span class="vib__label"><%- icon('vibration', 'ico--sm') %>바닥 진동</span>
+      <span class="vib__track" aria-hidden="true"><span class="vib__fill" id="vibFill"></span></span>
+      <span class="vib__state" id="vibState">감지를 시작하면 함께 잽니다</span>
+    </div>
+    <div class="topk" id="topk" aria-label="AI 분류 상위 3개">
+      <div class="topk__head"><span>AI가 듣고 있는 소리</span><span class="muted small" id="topkMeta">521가지 소리 판별</span></div>
+      <ul class="topk__list" id="topkList">
+        <% for (let i = 0; i < 3; i += 1) { %><li class="topk__item is-empty"><span class="topk__name">—</span><span class="topk__track"><span class="topk__fill"></span></span><span class="topk__pct">0%</span></li><% } %>
+      </ul>
+    </div>
+
+  </section>
+  <section class="detect-controls">
+    <button type="button" class="record-btn" id="recordBtn" aria-pressed="false" aria-label="감지 시작">
+      <span class="record-btn__ring"></span>
+      <span class="record-btn__icon"></span>
+      <span class="record-btn__label" id="recordLabel">감지 시작</span>
+    </button>
+    <button type="button" class="btn btn--secondary btn--toggle" id="excludeBtn" disabled aria-pressed="false" <%= isMaker ? 'hidden' : '' %>>
+      <%- icon('home') %>
+      <span id="excludeLabel">지금은 우리 집</span>
+      <small id="excludeHint">(누르면 제외 시작)</small>
+    </button>
+    <button type="button" class="btn btn--ghost btn--small" id="dimBtn" hidden><%- icon('moon', 'ico--sm') %>화면 어둡게 (배터리 절약)</button>
+    <p class="muted small exclude-help" <%= isMaker ? 'hidden' : '' %>>우리 집에서 나는 소리가 시작되면 누르고, 끝나면 다시 눌러 해제하세요. 켜져 있는 동안의 소리만 기록에서 빠집니다.</p>
+  </section>
+
+      <section class="card live-card" aria-label="실시간 분석">
+    <div class="bars" id="waveBars" aria-label="직전 10초 데시벨" role="img">
+      <% for (let i = 0; i < 10; i += 1) { %><span class="bars__bar"></span><% } %>
+    </div>
+    <p class="bars__caption">직전 10초 · 빨간 막대는 기준 초과 구간</p>
+
+      </section>
+    </div>
+    <div class="split__col">
+      <section class="card file-card" aria-labelledby="fileTitle">
+        <div class="card__head">
+          <h2 class="card__title" id="fileTitle">소리 파일로 AI 체험</h2>
+          <span class="muted small">마이크 없이</span>
+        </div>
+        <p class="muted small">발소리·개 짖는 소리·피아노 같은 소리 파일을 고르면, 감지 때와 같은 AI가 1초마다 무슨 소리인지 판별합니다. 파일은 이 기기 밖으로 보내지 않고 저장하지도 않습니다(최대 60초). 파일에는 실제 방의 소음 크기가 없으므로 dB는 표시하지 않고 소음원 분류만 보여 줍니다.</p>
+        <label class="btn btn--secondary btn--block file-pick">
+          <%- icon('flask') %><span id="filePickLabel">소리 파일 고르기</span>
+          <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm" class="sr-only">
+        </label>
+        <div class="file-result" id="fileResult" hidden>
+          <div class="progress"><span class="progress__bar" id="fileProgress"></span></div>
+          <p class="file-result__summary" id="fileSummary"></p>
+          <div class="file-strip" id="fileStrip" role="img" aria-label="1초마다 판별한 소음원"></div>
+          <ul class="file-groups" id="fileGroups"></ul>
+          <ol class="file-frames" id="fileFrames"></ol>
+        </div>
+      </section>
+
+  <section class="card" aria-labelledby="recentTitle">
+    <div class="card__head">
+      <h2 class="card__title" id="recentTitle"><%= isMaker ? '우리 집 최근 사건 3개' : '최근 사건 3개' %></h2>
+      <a class="link" href="/records">전체 기록<%- icon('arrow-right') %></a>
+    </div>
+    <div class="session-stat" id="sessionStat" hidden>이번 감지 <strong id="sessionMinutes">0분</strong> · 사건 <strong id="sessionEvents">0</strong>건 · 초과 <strong id="sessionExceeded">0</strong>건</div>
+    <ul class="event-list" id="recentList">
+      <% if (recentEvents.length === 0) { %>
+        <li class="event-list__empty" id="recentEmpty">
+          <svg class="empty-art" viewBox="0 0 120 80" aria-hidden="true"><rect x="10" y="20" width="100" height="50" rx="8" fill="var(--krds-primary-5)"/><path d="M30 55V40M45 55V32M60 55V46M75 55V36M90 55V50" stroke="var(--krds-primary-30)" stroke-width="6" stroke-linecap="round"/><circle cx="96" cy="22" r="9" fill="var(--krds-primary-50)"/><path d="M92 22l3 3 5-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          아직 기록된 사건이 없습니다.<br>감지를 시작하면 기준을 넘는 소음이 사건으로 쌓입니다.
+        </li>
+      <% } %>
+      <% recentEvents.forEach((e) => { %>
+        <li class="event-item" data-href="/records?week=<%= time.formatDate(e.started_at) %>">
+          <a class="event-item__link" href="/records?week=<%= time.formatDate(e.started_at) %>">
+            <span class="event-item__icon" aria-hidden="true"><%- icon(e.source_icon) %></span>
+            <span class="event-item__body">
+              <span class="event-item__title"><%= e.source_label %> <span class="muted"><%= e.date_label %> <%= e.time_label %></span></span>
+              <span class="event-item__meta">평균 <%= e.avg_db %>dB · 최고 <%= e.max_db %>dB · <%= e.duration_label %><%= e.has_vibration ? ' · 진동 동반' : '' %></span>
+            </span>
+            <span class="badge <%= e.exceeded ? 'badge--danger' : 'badge--ok' %>"><%= e.exceeded ? '기준 초과' : '기준 이내' %></span>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+  </section>
+
+  <section class="card card--soft">
+    <h2 class="card__title"><%= isMaker ? '우리 집 자가 점검은 이렇게' : '어떻게 동작하나요' %></h2>
+    <ol class="steps-inline">
+      <% if (isMaker) { %>
+        <li>폰을 우리 집 거실 바닥에 두고 평소처럼 생활합니다. 아래층에 전달될 수 있는 발걸음·가구 소리가 기록됩니다.</li>
+        <% if (settings.care_alert) { %><li>소리가 지금 시간대 기준에 가까워지면 <strong>배려 알림</strong>이 화면과 진동으로 바로 알려 줍니다.</li><% } %>
+        <li>기준을 넘어 <strong><%= settings.min_duration_sec %>초</strong> 이상 이어진 소리만 사건으로 남습니다. 기록 화면의 히트맵에서 조심할 시간대를 확인하세요.</li>
+        <li>중재 화면에서 이웃에게 먼저 양해를 구하는 안내문을 만들 수 있습니다. 이 모드에서는 "지금은 우리 집" 버튼이 필요 없습니다.</li>
+      <% } else { %>
+        <li>마이크 소리를 폰 안에서 AI가 7개 소음원으로 분류합니다.</li>
+        <li>같은 소음원이 기준을 넘어 <strong><%= settings.min_duration_sec %>초</strong> 이상 이어지면 사건으로 기록합니다.</li>
+        <% if (settings.vibration_enabled) { %><li>폰을 바닥에 평평하게 두면 가속도 센서로 바닥 진동도 함께 잽니다. 소리와 진동이 같이 잡힌 사건은 "진동 동반"으로 남습니다.</li><% } %>
+        <li>오디오는 저장·전송하지 않고 분류 결과·데시벨·시각만 서버로 보냅니다.</li>
+      <% } %>
+    </ol>
+  </section>
+    </div>
+  </div>
+</main>
+
+<div class="night-cover" id="nightCover" hidden role="dialog" aria-modal="true" aria-label="화면 어둡게 모드">
+  <div class="night-cover__clock" id="nightClock">--:--</div>
+  <div class="night-cover__line"><span id="nightDb">--</span> dB · 사건 <span id="nightEvents">0</span>건</div>
+  <p class="night-cover__alert" id="nightAlert" hidden></p>
+  <p class="night-cover__hint">감지는 계속됩니다. 화면을 누르면 돌아갑니다.</p>
+</div>
+
+<div class="modal" id="sessionModal" role="dialog" aria-modal="true" aria-labelledby="sessionTitle" hidden>
+  <div class="modal__panel">
+    <h2 class="modal__title" id="sessionTitle">이번 감지 요약</h2>
+    <dl class="kv" id="sessionKv"></dl>
+    <p class="muted small" id="sessionNote"></p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="sessionClose">닫기</button>
+      <a class="btn btn--secondary" href="/records">기록 보기</a>
+      <a class="btn btn--primary" href="/report">리포트</a>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
+  <div class="modal__panel">
+    <h2 class="modal__title" id="guideTitle">감지 전에 확인해 주세요</h2>
+    <ul class="modal__list">
+      <li><strong>폰을 천장 없는 쪽 바닥에 두세요.</strong> 벽이나 천장에 가까우면 울림이 섞입니다.</li>
+      <li>마이크 권한을 허용해 주세요. 소리는 폰 안에서만 처리되고 저장되지 않습니다.</li>
+      <li>우리 집에서 소리를 낼 때는 <strong>"지금은 우리 집"</strong> 버튼을 눌러 두세요. 다시 누를 때까지의 소리만 기록에서 빠집니다.</li>
+    </ul>
+    <p class="muted small">측정값은 공인 소음계와 다를 수 있습니다. 설정에서 조용한 방 기준으로 보정할 수 있습니다.</p>
+    <button type="button" class="btn btn--primary btn--block" id="guideOk">확인하고 시작</button>
+  </div>
+</div>
+
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/shared/threshold-rules.js', '/shared/decibel.js', '/shared/source-mapper.js', '/shared/lab-explain.js', '/shared/smoother.js', '/shared/event-detector.js', '/shared/exclusion-toggle.js', '/shared/vibration.js', '/shared/care-alert.js', 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js', '/js/audio-engine.js', '/js/detect.js', '/js/file-analyze.js'] }) %>

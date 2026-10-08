@@ -1,0 +1,97 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<% const s = summary; const groups = sourceGroups.filter((g) => g.key !== 'other'); %>
+<main id="main" class="main" data-model-url="<%= yamnetModelUrl %>" data-threshold="<%= userSettings.confidence_threshold %>">
+  <p class="notice" role="note"><%- icon('info') %><span>공개 음원(효과음 영상 등)을 폰 가까이에서 틀고, 어떤 소리인지 고른 뒤 10초 측정하세요. 소리는 저장하지 않고 1초마다의 분류 결과만 남깁니다.</span></p>
+
+  <section class="card" aria-labelledby="runTitle">
+    <h2 class="card__title" id="runTitle">측정하기</h2>
+    <div class="choice choice--grid" role="radiogroup" aria-label="지금 틀어 놓은 소리">
+      <% groups.forEach((g, i) => { %>
+        <label class="choice__item choice__item--compact">
+          <input type="radio" name="expected" value="<%= g.key %>" <%= i === 0 ? 'checked' : '' %>>
+          <span class="choice__label"><%- icon(g.icon, 'ico--sm') %><%= g.label %></span>
+        </label>
+      <% }); %>
+    </div>
+    <div class="lab-live" id="labLive" aria-live="polite">
+      <div class="progress"><span class="progress__bar" id="labProgress"></span></div>
+      <p class="lab-live__now" id="labNow">측정을 시작하면 1초마다 AI가 들은 소리가 여기에 표시됩니다.</p>
+    </div>
+    <div class="lab-actions">
+      <button type="button" class="btn btn--primary" id="labStart"><%- icon('mic') %><span>마이크로 10초 측정</span></button>
+      <label class="btn btn--secondary file-pick"><%- icon('flask') %><span id="labFileLabel">소리 파일로 측정</span><input type="file" id="labFile" accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm" class="sr-only"></label>
+    </div>
+    <p class="muted small">파일 측정은 앞 30초를 1초마다 판별합니다. 파일은 기기 밖으로 보내지 않습니다.</p>
+
+    <div class="lab-result" id="labResult" hidden tabindex="-1" aria-labelledby="labResultTitle">
+      <div class="lab-result__head">
+        <h3 class="lab-result__title" id="labResultTitle">방금 측정 결과</h3>
+        <span class="badge" id="labVerdict"></span>
+      </div>
+      <p class="lab-result__compare" id="labCompare"></p>
+      <div class="lab-result__block">
+        <p class="lab-result__label">1초마다 판정한 소음원 <span class="muted" id="labHitRate"></span></p>
+        <div class="file-strip" id="labStrip" role="img" aria-label="1초마다 판정한 소음원"></div>
+        <ul class="file-groups" id="labGroups"></ul>
+      </div>
+      <div class="lab-result__block">
+        <p class="lab-result__label">AI가 들은 소리 <span class="muted">AI가 1초마다 가장 높게 본 소리</span></p>
+        <ul class="file-groups" id="labHeard"></ul>
+      </div>
+      <p class="lab-result__reason" id="labReason"></p>
+      <ul class="lab-result__tips" id="labTips" hidden></ul>
+      <details class="lab-result__detail">
+        <summary>1초별 결과 자세히</summary>
+        <ol class="file-frames" id="labFrames"></ol>
+      </details>
+    </div>
+  </section>
+
+  <div id="labStats">
+
+  <section class="card facts" aria-label="정확도 요약">
+    <dl class="facts__list">
+      <div class="facts__row"><dt>전체 정확도</dt><dd><% if (s.accuracy !== null) { %><span class="facts__num"><%= s.accuracy %></span>%<% } else { %>측정 전<% } %></dd></div>
+      <div class="facts__row"><dt>측정 횟수</dt><dd><span class="facts__num"><%= s.total_runs %></span>회 <span class="muted">맞음 <%= s.correct %>회</span></dd></div>
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="byGroupTitle">
+    <h2 class="card__title" id="byGroupTitle">소음원별 정확도</h2>
+    <ul class="hbar-list">
+      <% s.by_group.forEach((g) => { %>
+        <li class="hbar">
+          <span class="hbar__label"><%- icon(g.icon, 'ico--sm') %> <%= g.label %></span>
+          <span class="hbar__track"><span class="hbar__fill hbar__fill--danger" style="width:<%= g.accuracy || 0 %>%"></span></span>
+          <span class="hbar__value"><%= g.accuracy === null ? '-' : g.accuracy + '%' %><small> <%= g.correct %>/<%= g.runs %></small></span>
+        </li>
+      <% }); %>
+    </ul>
+    <p class="muted small">한 번의 측정은 '기타'를 뺀 1초 결과의 다수결로 판정합니다. 성과보고서에는 소음원마다 여러 번 측정한 값을 쓰세요.</p>
+  </section>
+
+  <% if (s.total_runs) { %>
+  <section class="card" aria-labelledby="matrixTitle">
+    <h2 class="card__title" id="matrixTitle">오분류 표</h2>
+    <div class="table-scroll">
+      <table class="table matrix">
+        <caption class="sr-only">행은 실제 틀어 놓은 소리, 열은 AI가 판정한 소리</caption>
+        <thead><tr><th scope="col">실제 \ 판정</th><% s.labels.forEach((l) => { %><th scope="col"><%= l.label %></th><% }); %></tr></thead>
+        <tbody>
+          <% s.labels.filter((l) => l.key !== 'other').forEach((row) => { %>
+            <tr><th scope="row"><%= row.label %></th><% s.labels.forEach((col) => { const v = s.matrix[row.key][col.key]; %><td class="<%= v ? (row.key === col.key ? 'is-hit' : 'is-miss') : '' %>"><%= v || '' %></td><% }); %></tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="action-row">
+    <button type="button" class="btn btn--ghost" id="labClear">측정 기록 지우기</button>
+  </div>
+  <% } %>
+  </div>
+</main>
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/shared/decibel.js', '/shared/source-mapper.js', '/shared/lab-explain.js', 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js', '/js/audio-engine.js', '/js/lab.js'] }) %>

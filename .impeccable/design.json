@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-08T05:55:58.181567+00:00",
+  "title": "Design System: 이웃소리",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "행정 파랑",
+        "canonical": "#246BEB",
+        "tonalRamp": [
+          "#062463",
+          "#083891",
+          "#0B50D0",
+          "#246BEB",
+          "#5B8FF0",
+          "#86AEF4",
+          "#D3E1FB",
+          "#ECF2FE"
+        ]
+      },
+      "exceed": {
+        "role": "secondary",
+        "displayName": "초과 빨강",
+        "canonical": "#EB003B",
+        "tonalRamp": [
+          "#5C0017",
+          "#8A0021",
+          "#BA0029",
+          "#EB003B",
+          "#F2577A",
+          "#F799AE",
+          "#FBD5DD",
+          "#FDEEF1"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "보고서 바탕",
+        "canonical": "#F1F3F6",
+        "tonalRamp": [
+          "#1A1D21",
+          "#3B424A",
+          "#4F5862",
+          "#626D78",
+          "#9BA4AE",
+          "#CDD1D5",
+          "#E3E7EC",
+          "#F7F8FA"
+        ]
+      },
+      "night-band": {
+        "role": "neutral",
+        "displayName": "야간 띠",
+        "canonical": "#E9EEF7"
+      },
+      "night-ground": {
+        "role": "neutral",
+        "displayName": "어두운 화면 바탕",
+        "canonical": "#0E1524"
+      }
+    },
+    "typographyMeta": {
+      "measure": {
+        "displayName": "측정값",
+        "purpose": "감지 화면 현재 dB, 다이얼 가운데 총계."
+      },
+      "display": {
+        "displayName": "소개",
+        "purpose": "첫 방문 화면 한 줄 소개뿐."
+      },
+      "headline": {
+        "displayName": "핵심 패턴",
+        "purpose": "다이얼 아래 한 줄 해석."
+      },
+      "title": {
+        "displayName": "카드 제목",
+        "purpose": "카드마다 하나."
+      },
+      "body": {
+        "displayName": "본문",
+        "purpose": "설명과 AI 요약문(16px/1.8)."
+      },
+      "label": {
+        "displayName": "라벨",
+        "purpose": "상태 단어, 범례, 배지, 메타."
+      }
+    },
+    "shadows": [
+      {
+        "name": "paper",
+        "value": "0 1px 2px rgba(26,29,33,.05), 0 4px 14px rgba(26,29,33,.04)",
+        "purpose": "카드와 요약 칸."
+      },
+      {
+        "name": "record-lift",
+        "value": "0 6px 16px rgba(26,29,33,.16), 0 1px 3px rgba(26,29,33,.12)",
+        "purpose": "감지 시작 버튼 하나. 색 있는 빛 번짐은 쓰지 않음."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "누름, 막대·진행 바, 새 사건 등장."
+      },
+      {
+        "name": "ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "아래에서 올라오는 시트."
+      },
+      {
+        "name": "press",
+        "value": "140ms",
+        "purpose": "버튼 scale(0.97)."
+      },
+      {
+        "name": "state",
+        "value": "160-250ms",
+        "purpose": "색·막대 상태 전환."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "desktop",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "화면당 하나의 주된 동작.",
+      "html": "<button class=\"ds-btn-primary\">중재 메시지 만들기</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:10px 16px;border-radius:10px;border:1px solid transparent;background:var(--krds-primary-50,#246BEB);color:var(--on-primary,#fff);font-size:15px;font-weight:650;cursor:pointer;transition:background-color 160ms ease,transform 140ms cubic-bezier(.23,1,.32,1)}.ds-btn-primary:hover{background:var(--krds-primary-60,#0B50D0)}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:2px solid #246BEB;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "보조 동작(PDF 저장, 다시 생성).",
+      "html": "<button class=\"ds-btn-secondary\">PDF 저장</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:10px 16px;border-radius:10px;border:1px solid #246BEB;background:#fff;color:#0B50D0;font-size:15px;font-weight:650;cursor:pointer;transition:background-color 160ms ease,transform 140ms cubic-bezier(.23,1,.32,1)}.ds-btn-secondary:hover{background:#ECF2FE}.ds-btn-secondary:active{transform:scale(.97)}.ds-btn-secondary:focus-visible{outline:2px solid #246BEB;outline-offset:2px}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "소음원 필터, 말투 선택.",
+      "html": "<span class=\"ds-chip\">발걸음</span><span class=\"ds-chip ds-chip--on\">전체</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:999px;border:1px solid #CDD1D5;background:#fff;color:#3B424A;font-size:13px;margin-right:6px}.ds-chip--on{background:#246BEB;border-color:#246BEB;color:#fff}.ds-chip:focus-visible{outline:2px solid #246BEB;outline-offset:2px}"
+    },
+    {
+      "name": "Verdict Badges",
+      "kind": "chip",
+      "refersTo": "badge-exceed",
+      "description": "판정·데모 표시.",
+      "html": "<span class=\"ds-badge ds-badge--ex\">기준 초과</span> <span class=\"ds-badge ds-badge--ok\">기준 이내</span> <span class=\"ds-badge ds-badge--demo\">데모</span>",
+      "css": ".ds-badge{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}.ds-badge--ex{background:#FDEEF1;color:#BA0029;border:1px solid #FBD5DD}.ds-badge--ok{background:#ECF2FE;color:#083891;border:1px solid #D3E1FB}.ds-badge--demo{background:#F1F3F6;color:#4F5862;border:1px dashed #9BA4AE;font-weight:700}"
+    },
+    {
+      "name": "Fact List Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "숫자 카드 격자 대신 쓰는 정의 목록.",
+      "html": "<dl class=\"ds-facts\"><div><dt>총 사건</dt><dd><b>129</b>건</dd></div><div class=\"ex\"><dt>기준 초과</dt><dd><b>91</b>건</dd></div></dl>",
+      "css": ".ds-facts{margin:0;padding:6px 16px;background:#fff;border:1px solid #E3E7EC;border-radius:14px;box-shadow:0 1px 2px rgba(26,29,33,.05),0 4px 14px rgba(26,29,33,.04)}.ds-facts div{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:1px solid #E3E7EC}.ds-facts div:last-child{border-bottom:none}.ds-facts dt{color:#626D78;font-size:14px}.ds-facts dd{margin:0;font-weight:600}.ds-facts b{font-size:22px;font-weight:800;color:#083891;font-variant-numeric:tabular-nums;margin-right:2px}.ds-facts .ex b{color:#BA0029}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "메모·보정값 입력.",
+      "html": "<input class=\"ds-input\" placeholder=\"예: 아이가 깨어남\">",
+      "css": ".ds-input{min-height:44px;padding:8px 12px;border:1px solid #CDD1D5;border-radius:10px;background:#fff;color:#1A1D21;font-size:15px;caret-color:#246BEB;width:260px}.ds-input:focus-visible{outline:2px solid #246BEB;outline-offset:1px;border-color:#246BEB}"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "",
+      "description": "모바일 하단 탭(데스크톱은 왼쪽 세로 메뉴).",
+      "html": "<nav class=\"ds-tabs\"><a class=\"on\">감지</a><a>기록</a><a>리포트</a><a>중재</a><a>설정</a></nav>",
+      "css": ".ds-tabs{display:flex;background:#fff;border-top:1px solid #E3E7EC;width:360px}.ds-tabs a{flex:1;text-align:center;padding:14px 0;font-size:11px;font-weight:600;color:#626D78;cursor:pointer}.ds-tabs a.on{color:#0B50D0}.ds-tabs a:hover{color:#3B424A}"
+    },
+    {
+      "name": "24h Noise Dial",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "대표 요소: 야간 음영 띠 위의 시간별 사건·초과 막대. 실제는 src/shared/dial.js가 생성.",
+      "html": "<svg class=\"ds-dial\" viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"60\" r=\"44\" fill=\"none\" stroke=\"#F7F8FA\" stroke-width=\"26\"/><path d=\"M60 20 A40 40 0 0 1 94.6 80 L82 72.7 A26 26 0 0 0 60 34 Z\" fill=\"#E9EEF7\"/><rect x=\"57\" y=\"12\" width=\"6\" height=\"22\" fill=\"#EB003B\"/><rect x=\"66\" y=\"20\" width=\"5\" height=\"14\" fill=\"#86AEF4\"/><text x=\"60\" y=\"66\" text-anchor=\"middle\" font-size=\"18\" font-weight=\"800\" fill=\"#1A1D21\">129</text></svg>",
+      "css": ".ds-dial{width:160px;height:160px}"
+    },
+    {
+      "name": "Ask Thread",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "리포트의 기록에 대해 묻기. 존댓말 추천 칩, 보조 버튼, 회색 답 칸과 저장되지 않음 메타.",
+      "html": "<div class=\"ds-ask\"><span class=\"ds-ask__chip\">평일과 주말은 어떻게 다른가요?</span><div class=\"ds-ask__item\"><p class=\"ds-ask__q\">평일과 주말은 어떻게 다른가요?</p><p class=\"ds-ask__a\">주말 기록이 평일보다 많았습니다.</p><p class=\"ds-ask__m\">AI 답변 · 저장되지 않음</p></div></div>",
+      "css": ".ds-ask{display:flex;flex-direction:column;gap:10px;max-width:320px}.ds-ask__chip{align-self:flex-start;font-size:13px;padding:6px 12px;border:1px solid #CDD1D5;border-radius:999px;color:#1A1D21}.ds-ask__item{padding:12px 14px;border-radius:8px;background:#F7F8FA;border:1px solid #E3E7EC}.ds-ask__q{margin:0 0 6px;font-weight:700;font-size:14px}.ds-ask__a{margin:0;font-size:15px;line-height:1.7}.ds-ask__m{margin:6px 0 0;font-size:12px;color:#626D78}"
+    },
+    {
+      "name": "Share Row",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "읽기 전용 공유 링크 줄. 14일 만료, 메모 제외.",
+      "html": "<div class=\"ds-share\"><span>localhost/s/nC2N…</span><b>복사</b></div>",
+      "css": ".ds-share{display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:8px;background:#ECF2FE;border:1px solid #D3E1FB;font-size:13px;color:#0B50D0;max-width:320px}.ds-share span{flex:1}"
+    },
+    {
+      "name": "File Analysis Strip",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "1초 단위 분류 띠. 분류됨=파랑, 불확실=회색. dB 표시 없음.",
+      "html": "<div class=\"ds-strip\"><i></i><i></i><i class=\"o\"></i><i></i><i class=\"o\"></i><i></i></div>",
+      "css": ".ds-strip{display:flex;gap:2px;height:20px;max-width:320px}.ds-strip i{flex:1;border-radius:2px;background:#246BEB}.ds-strip i.o{background:#E3E7EC}"
+    },
+    {
+      "name": "Night Cover",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "감지 중 전면 검정 덮개. 시계 #56627A 400, 안내 #7C8AA3.",
+      "html": "<div class=\"ds-night\"><b>02:14</b><span>41 dB · 사건 3건</span><small>감지는 계속됩니다. 화면을 누르면 돌아갑니다.</small></div>",
+      "css": ".ds-night{background:#000;color:#7C8AA3;display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px;border-radius:8px;max-width:320px}.ds-night b{font-size:40px;font-weight:400;color:#56627A}.ds-night small{font-size:13px}"
+    },
+    {
+      "name": "Session Summary Sheet",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "감지 종료 요약. dl.kv 행과 버튼 3개.",
+      "html": "<dl class=\"ds-kv\"><div><dt>감지 시간</dt><dd>12분 4초</dd></div><div><dt>기록된 사건</dt><dd>3건</dd></div><div><dt>기준 초과</dt><dd>2건</dd></div></dl>",
+      "css": ".ds-kv{margin:0;max-width:320px}.ds-kv div{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px dashed #E3E7EC}.ds-kv dt{color:#626D78}.ds-kv dd{margin:0;font-weight:600}"
+    },
+    {
+      "name": "Floor Vibration Meter",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "감지 카드의 바닥 진동 줄. 라벨, 상태 문구, 6px 로그 막대. 충격 진동은 짙은 파랑 굵은 글씨.",
+      "html": "<div class=\"ds-vib\"><span class=\"ds-vib__l\">바닥 진동</span><span class=\"ds-vib__s\">충격 진동 감지</span><span class=\"ds-vib__t\"><i></i></span></div>",
+      "css": ".ds-vib{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:13px;max-width:320px}.ds-vib__l{font-weight:600;color:#3B424A}.ds-vib__s{justify-self:end;font-size:12px;font-weight:700;color:#0B50D0}.ds-vib__t{grid-column:1/-1;height:6px;background:#F1F3F6;border-radius:3px;overflow:hidden}.ds-vib__t i{display:block;height:100%;width:72%;background:#0B50D0}"
+    },
+    {
+      "name": "Care Alert Banner",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "소음을 내는 쪽 배려 알림. 가까움=옅은 파랑, 넘음=옅은 빨강.",
+      "html": "<div class=\"ds-care\"><strong>아랫집 기준을 넘었어요</strong><span>발걸음 38dB · 야간 기준 34dB. 뒤꿈치 대신 앞꿈치로 걷거나 실내화를 신어 주세요.</span></div>",
+      "css": ".ds-care{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:8px;background:#FDEEF1;border:1px solid #FBD5DD;font-size:14px;line-height:1.6;color:#1A1D21;max-width:320px}.ds-care strong{font-size:15px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "공공 측정 보고서",
+    "overview": "이웃소리의 화면은 관공서가 발행하는 측정 보고서처럼 읽혀야 합니다. 무엇을 쟀는지, 어느 기준과 비교했는지, 그 기준의 출처가 무엇인지가 숫자보다 먼저 서 있고, 해석 문장은 단정하지 않습니다. KRDS의 파랑·빨강·청회색을 그대로 쓰되, 완성도는 Apple 건강·소음 앱처럼 큰 측정값과 조용한 라벨, 한눈에 읽히는 데이터 그래픽으로 끌어올립니다. 대표 요소는 24시간 소음 다이얼입니다. 밤에는 같은 의미색을 유지한 어두운 화면으로 바뀌고, 움직임은 상태가 바뀌는 순간에만 있습니다.",
+    "keyCharacteristics": [
+      "의미색은 두 개뿐입니다. 기준 초과는 빨강, 정상·주요 동작은 파랑입니다.",
+      "측정값은 크고 굵게, 단위와 라벨은 작고 조용하게 씁니다. 숫자는 항상 tabular 숫자입니다.",
+      "모든 판정 옆에 근거(기준값, 측정 방식, 출처)가 붙고, \"공인 측정 아님\" 고지가 화면마다 있습니다.",
+      "데모(모의) 데이터는 점선 배지로 항상 드러냅니다.",
+      "아이콘은 1.8px 선의 SVG 한 세트(src/shared/icons.js)만 씁니다."
+    ],
+    "rules": [
+      {
+        "name": "The Two Signals Rule",
+        "body": "의미를 가진 색은 초과 빨강과 행정 파랑 두 개뿐입니다. 경고·주의·성공 같은 세 번째 의미색을 추가하지 않습니다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Is a Verdict Rule",
+        "body": "빨강은 기준 초과 판정, 삭제처럼 되돌릴 수 없는 동작, 법적 위험 안내에만 씁니다. 꾸밈이나 강조에 쓰지 않습니다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Number Leads Rule",
+        "body": "측정값은 라벨보다 최소 두 단계 크게 쓰고, 단위는 숫자보다 작게 붙입니다. 숫자는 tabular-nums로 자릿수가 흔들리지 않게 합니다.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Step Up Rule",
+        "body": "면은 바탕보다 딱 한 단계만 뜹니다. 카드 안에 그림자 있는 카드를 넣지 않습니다.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 판정 옆에 근거(기준값 dB, 측정 방식, 주간·야간)를 함께 씁니다.",
+      "Do 모든 측정 화면에 \"공인 측정 아님\" 고지를 한 줄로 둡니다.",
+      "Do 데모 데이터가 섞인 화면·인쇄물·CSV에는 데모 표시를 남깁니다.",
+      "Do 크기 변화는 transform(scaleX/scaleY)으로 움직이고, 지속 시간은 140~350ms, cubic-bezier(0.23, 1, 0.32, 1)을 씁니다.",
+      "Do 야간 자동 설정에서는 토큰만 바꿔 어두운 화면을 만듭니다."
+    ],
+    "donts": [
+      "Don't 같은 크기의 숫자 카드를 격자로 늘어놓지 않습니다. 정의 목록이나 다이얼을 씁니다.",
+      "Don't 이모지나 특수문자를 아이콘으로 쓰지 않습니다. src/shared/icons.js에 선 아이콘을 추가합니다.",
+      "Don't 제목 위에 작은 머리글(eyebrow)을 두지 않습니다.",
+      "Don't 카드나 안내문에 두꺼운 색 왼쪽 테두리를 쓰지 않습니다.",
+      "Don't 감지 중 상태를 무한 반복 애니메이션으로 표시하지 않습니다.",
+      "Don't 비활성 상태를 opacity로 흐리게 만들지 않습니다. 대비를 지키는 회색 토큰을 씁니다.",
+      "Don't \"위층\", \"윗집\" 같은 위치 단정 표현을 화면 문구에 쓰지 않습니다."
+    ]
+  }
+}

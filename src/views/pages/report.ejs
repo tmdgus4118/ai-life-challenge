@@ -1,0 +1,115 @@
+<%- include('../partials/head', { title, page }) %>
+<%- include('../partials/header', { title, page }) %>
+<% const s = view.summary; const c = s.comparison || {}; const isMaker = view.settings.role === 'maker';
+   const deltaChip = (d) => { if (!c.has_previous || !d) return ''; if (d.delta === 0) return '<span class="delta delta--flat">지난 기간과 같음</span>'; const up = d.delta > 0; return `<span class="delta ${up ? 'delta--up' : 'delta--down'}">${icon(up ? 'trend-up' : 'trend-down', 'ico--sm')} ${Math.abs(d.delta)}건${d.percent !== null ? ' (' + (up ? '+' : '') + d.percent + '%)' : ''}</span>`; }; %>
+<main id="main" class="main main--wide" data-days="<%= view.days %>" data-summary='<%- JSON.stringify({ period: s.period, total_events: s.total_events, exceeded_events: s.exceeded_events, night_events: s.night_events, top_source: s.top_source, top_hour: s.top_hour, by_source: s.by_source.filter((g) => g.count > 0).slice(0, 4), hourly: s.hourly, max_db: s.max_db, comparison: c }).replace(/'/g, "&#39;") %>' data-role="<%= view.settings.role %>">
+  <%- include('../partials/notice', { text: isMaker ? '우리 집 소음 자가 점검 리포트입니다. 스마트폰 측정값으로 공인 측정이 아니며, 어느 시간대를 조심할지 보는 참고 자료입니다.' : '스마트폰 측정값으로 공인 측정이 아닙니다. 대화를 위한 참고 기록이며 법적 증거가 아닙니다.' }) %>
+
+  <div class="segmented" role="tablist" aria-label="기간 선택">
+    <% view.periods.forEach((d) => { %>
+      <a role="tab" class="segmented__item<%= view.days === d ? ' is-active' : '' %>" href="/report?days=<%= d %>" aria-selected="<%= view.days === d %>">최근 <%= d %>일</a>
+    <% }); %>
+  </div>
+  <p class="muted small period-label"><% if (s.demo_events) { %><span class="badge badge--demo">데모 기록 <%= s.demo_events %>건 포함</span> <% } %><%= s.period.from_label %> ~ <%= s.period.to_label %><% if (c.has_previous) { %> · 비교 기간 <%= c.previous_from.slice(5).replace('-', '.') %>~<%= c.previous_to.slice(5).replace('-', '.') %><% } %></p>
+
+  <div class="split">
+  <div class="split__col">
+  <section class="card dial-card" aria-labelledby="dialTitle">
+    <h2 class="sr-only" id="dialTitle">24시간 소음 다이얼</h2>
+    <div class="dial-wrap">
+      <%- dial.build({ hourly: s.hourly, hourlyExceeded: s.hourly_exceeded, nightStart: view.settings.night_start, nightEnd: view.settings.night_end, total: s.total_events, exceeded: s.exceeded_events }) %>
+    </div>
+    <ul class="dial-legend" aria-label="범례">
+      <li><i class="dial-legend__swatch is-normal"></i>기준 이내</li>
+      <li><i class="dial-legend__swatch is-exceeded"></i>기준 초과</li>
+      <li><i class="dial-legend__swatch is-night"></i>야간 <%= view.settings.night_start %>~<%= String(view.settings.night_end).padStart(2, '0') %>시</li>
+    </ul>
+    <p class="headline"><%= view.headline.pattern %></p>
+    <% if (view.headline.delta) { %><p class="headline__delta"><%= view.headline.delta %></p><% } %>
+  </section>
+
+  </div>
+  <div class="split__col">
+  <section class="card facts" aria-label="핵심 수치">
+    <dl class="facts__list">
+      <div class="facts__row"><dt>총 사건</dt><dd><span class="facts__num"><%= s.total_events %></span>건 <%- deltaChip(c.total) %></dd></div>
+      <div class="facts__row is-danger"><dt>기준 초과</dt><dd><span class="facts__num"><%= s.exceeded_events %></span>건 <%- deltaChip(c.exceeded) %></dd></div>
+      <div class="facts__row"><dt>주된 소음원</dt><dd><% if (s.top_source) { %><%- icon((sourceGroups.find((g) => g.key === s.top_source.key) || {}).icon || 'other', 'ico--sm') %> <%= s.top_source.label %> <span class="muted"><%= s.top_source.count %>건 · <%= s.top_source.share %>%</span><% } else { %>-<% } %></dd></div>
+      <div class="facts__row"><dt>가장 많은 시간대</dt><dd><%= s.top_hour ? s.top_hour.label : '-' %><% if (s.top_hour) { %> <span class="muted"><%= s.top_hour.count %>건<% if (c.has_previous && c.previous_top_hour && c.previous_top_hour !== s.top_hour.label) { %> · 지난 기간 <%= c.previous_top_hour %><% } %></span><% } %></dd></div>
+      <div class="facts__row"><dt>야간 사건</dt><dd><span class="facts__num"><%= s.night_events %></span>건 <span class="muted">초과 <%= s.night_exceeded_events %>건</span></dd></div>
+      <div class="facts__row"><dt>가장 높은 소음</dt><dd><%= s.max_db ? s.max_db.value + 'dB' : '-' %><% if (s.max_db) { %> <span class="muted"><%= s.max_db.source_label %> · <%= s.max_db.at_label %></span><% } %></dd></div>
+      <% if (s.vibration && s.vibration.measured_events) { %><div class="facts__row"><dt>바닥 진동 동반</dt><dd><%- icon('vibration', 'ico--sm') %> <span class="facts__num"><%= s.vibration.with_vibration %></span>건 <span class="muted">진동을 잰 <%= s.vibration.measured_events %>건 중 · 기준 초과 <%= s.vibration.exceeded_with_vibration %>건</span></dd></div><% } %>
+    </dl>
+    <% if (!c.has_previous && s.total_events) { %><p class="muted small">직전 <%= view.days %>일(<%= c.previous_label %>)은 <%= c.reason === 'sparse' ? '기록한 날이 ' + c.recorded_days + '일뿐이라' : '기록이 없어' %> 증감을 비교하지 않았습니다.</p><% } %>
+  </section>
+
+  <section class="card" aria-labelledby="aiTitle" id="aiCard">
+    <div class="card__head">
+      <h2 class="card__title" id="aiTitle">AI 요약문</h2>
+      <button type="button" class="btn btn--small btn--secondary" id="regenBtn"><%= view.report ? '다시 생성' : '요약 생성' %></button>
+    </div>
+    <p class="ai-text<%= view.report ? '' : ' is-empty' %>" id="aiText" aria-live="polite"><%= view.report ? view.report.ai_text : (s.total_events ? (view.stale_report ? '기록이 바뀌어 지금 기록으로 요약문을 새로 씁니다.' : '아직 생성된 요약문이 없습니다. "요약 생성"을 누르면 집계 숫자만 바탕으로 5문장 이내의 요약문을 만듭니다.') : '기록된 사건이 없어 요약할 내용이 없습니다. 감지를 시작하거나 설정에서 데모 데이터를 불러오세요.') %></p>
+    <p class="muted small" id="aiMeta"><%= view.report ? `${view.generated_label} 생성 · ${view.report.provider === 'template' ? '규칙 기반 작성' : 'AI 작성'}${view.report.fallback ? ' · 안전장치로 대체문 사용' : ''}` : '숫자는 서버가 계산하고 AI는 글만 씁니다. 추측·비난·감정 표현은 생성 후 검사로 걸러냅니다.' %></p>
+  </section>
+
+  </div>
+  </div>
+
+  <section class="card ask-card" aria-labelledby="askTitle">
+    <div class="card__head">
+      <h2 class="card__title" id="askTitle">기록에게 묻기</h2>
+      <span class="muted small">숫자는 기록 그대로, 글은 AI</span>
+    </div>
+    <div class="chips ask-chips" role="group" aria-label="추천 질문">
+      <% constants.ASK_QUESTIONS.forEach((q) => { %><button type="button" class="chip ask-chip" data-key="<%= q.key %>"><%= q.label %></button><% }); %>
+    </div>
+    <form class="ask-form" id="askForm">
+      <label class="sr-only" for="askInput">기록에 대해 질문하기</label>
+      <input class="input" id="askInput" maxlength="<%= constants.ASK_MAX_LENGTH %>" placeholder="예: 주말 오후에도 소음이 있었나요?" autocomplete="off" <%= s.total_events ? '' : 'disabled' %>>
+      <button type="submit" class="btn btn--secondary" id="askSend" <%= s.total_events ? '' : 'disabled' %>><%- icon('send') %><span class="sr-only">질문 보내기</span></button>
+    </form>
+    <ol class="ask-thread" id="askThread" aria-live="polite"></ol>
+    <p class="muted small">기록으로 알 수 없는 것(상대의 의도, 법적 판단)은 답하지 않고 법·대응 안내로 연결합니다. 질문과 답은 저장하지 않습니다.</p>
+  </section>
+
+  <section class="card" aria-labelledby="srcTitle">
+    <h2 class="card__title" id="srcTitle">소음원별 사건 수</h2>
+    <ul class="hbar-list">
+      <% s.by_source.forEach((g) => { %>
+        <li class="hbar">
+          <span class="hbar__label"><%- icon(g.icon, 'ico--sm') %> <%= g.label %></span>
+          <span class="hbar__track"><span class="hbar__fill" style="width:<%= Math.round((g.count / view.source_max) * 100) %>%"></span><span class="hbar__fill hbar__fill--danger" style="width:<%= Math.round((g.exceeded / view.source_max) * 100) %>%"></span></span>
+          <span class="hbar__value"><%= g.count %><small>건</small><% if (g.exceeded) { %> <span class="hbar__ex"><%= g.exceeded %></span><% } %></span>
+        </li>
+      <% }); %>
+    </ul>
+    <p class="muted small">진한 막대와 빨간 숫자는 기준 초과 사건 수</p>
+  </section>
+
+  <section class="card" aria-labelledby="detailTitle">
+    <h2 class="card__title" id="detailTitle">더 자세히</h2>
+    <dl class="kv">
+      <div><dt>가장 긴 사건</dt><dd><%= s.longest_event ? `${s.longest_event.duration_label} · ${s.longest_event.source_label} · ${s.longest_event.at_label}` : '-' %></dd></div>
+      <div><dt>평일 밤(22시 이후) 사건</dt><dd><%= s.weekday_night_events %>건</dd></div>
+      <div><dt>사건 평균 소음</dt><dd><%= s.avg_db_mean !== null ? s.avg_db_mean + 'dB' : '-' %></dd></div>
+    </dl>
+    <% if (s.memos.length) { %>
+      <h3 class="card__subtitle">사용자 메모</h3>
+      <ul class="memo-list"><% s.memos.forEach((m) => { %><li><span class="muted"><%= m.at_label %></span> <%= m.source_label %> · <%= m.memo %></li><% }); %></ul>
+    <% } %>
+  </section>
+
+  <div class="share-row" id="shareRow" hidden>
+    <span class="share-row__text" id="shareText"></span>
+    <button type="button" class="btn btn--small btn--ghost" id="shareCopy"><%- icon('copy', 'ico--sm') %>복사</button>
+  </div>
+  <div class="action-row">
+    <button type="button" class="btn btn--secondary" id="linkBtn" <%= s.total_events ? '' : 'disabled' %>><%- icon('external') %>링크로 공유</button>
+    <button type="button" class="btn btn--secondary" id="shareBtn" <%= s.total_events ? '' : 'disabled' %>><%- icon('share') %>이미지로 공유</button>
+    <a class="btn btn--secondary" href="/report/print?days=<%= view.days %>" target="_blank" rel="noopener" id="pdfBtn"><%- icon('download') %>PDF 저장</a>
+  </div>
+  <a class="btn btn--primary btn--block" href="/mediate"><%= isMaker ? '이웃에게 먼저 안내문 보내기' : '중재 메시지 만들기' %><%- icon('arrow-right') %></a>
+  <canvas id="shareCanvas" width="1080" height="1350" hidden aria-hidden="true"></canvas>
+</main>
+<%- include('../partials/tabbar', { page }) %>
+<%- include('../partials/footer', { scripts: ['/js/ai-stream.js', '/js/share-card.js', '/js/report.js'] }) %>

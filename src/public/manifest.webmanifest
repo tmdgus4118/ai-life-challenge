@@ -1,0 +1,15 @@
+{
+  "name": "이웃소리 - 층간소음 AI 기록·중재",
+  "short_name": "이웃소리",
+  "description": "시끄럽다는 말 대신, AI가 정리한 기록으로 이웃과 대화하세요.",
+  "start_url": "/detect",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#F1F3F6",
+  "theme_color": "#246BEB",
+  "lang": "ko",
+  "icons": [
+    { "src": "/img/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

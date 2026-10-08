@@ -1,0 +1,63 @@
+<%- include('../partials/head', { title, page }) %>
+<header class="app-header" role="banner">
+  <div class="app-header__inner">
+    <span class="app-header__brand">
+      <img src="/img/icon.svg" alt="" width="28" height="28">
+      <span class="app-header__name">이웃소리</span>
+      <span class="app-header__sub">공유된 소음 기록</span>
+    </span>
+    <h1 class="sr-only"><%= title %></h1>
+  </div>
+</header>
+<main id="main" class="main main--shared">
+  <p class="notice" role="note"><%- icon('info') %><span>이 페이지는 기록한 분이 공유한 읽기 전용 리포트입니다. <%= disclaimer %> 녹음은 저장되지 않았고 소음원 분류와 dB만 담겨 있습니다.</span></p>
+
+  <section class="card dial-card" aria-labelledby="sharedTitle">
+    <h2 class="shared__title" id="sharedTitle">생활소음 기록 <span class="muted"><%= s.period.from_label %> ~ <%= s.period.to_label %> · <%= s.period.days %>일</span></h2>
+    <% if (s.demo_events) { %><span class="badge badge--demo">데모 기록 <%= s.demo_events %>건 포함</span><% } %>
+    <div class="dial-wrap">
+      <%- dial.build({ hourly: s.hourly, hourlyExceeded: s.hourly_exceeded || null, nightStart: share.night_start ?? 22, nightEnd: share.night_end ?? 6, total: s.total_events, exceeded: s.exceeded_events }) %>
+    </div>
+    <ul class="dial-legend" aria-label="범례">
+      <li><i class="dial-legend__swatch is-normal"></i>기준 이내</li>
+      <li><i class="dial-legend__swatch is-exceeded"></i>기준 초과</li>
+      <li><i class="dial-legend__swatch is-night"></i>야간 <%= share.night_start ?? 22 %>~<%= String(share.night_end ?? 6).padStart(2, '0') %>시</li>
+    </ul>
+  </section>
+
+  <section class="card facts" aria-label="핵심 수치">
+    <dl class="facts__list">
+      <div class="facts__row"><dt>총 사건</dt><dd><span class="facts__num"><%= s.total_events %></span>건</dd></div>
+      <div class="facts__row is-danger"><dt>기준 초과</dt><dd><span class="facts__num"><%= s.exceeded_events %></span>건</dd></div>
+      <div class="facts__row"><dt>주된 소음원</dt><dd><%= s.top_source ? `${s.top_source.label} ${s.top_source.count}건` : '-' %></dd></div>
+      <div class="facts__row"><dt>가장 많은 시간대</dt><dd><%= s.top_hour ? `${s.top_hour.label} ${s.top_hour.count}건` : '-' %></dd></div>
+      <div class="facts__row"><dt>야간 사건</dt><dd><%= s.night_events %>건 <span class="muted">초과 <%= s.night_exceeded_events %>건</span></dd></div>
+      <div class="facts__row"><dt>가장 높은 소음</dt><dd><%= s.max_db ? `${s.max_db.value}dB · ${s.max_db.source_label} · ${s.max_db.at_label}` : '-' %></dd></div>
+      <% if (s.vibration && s.vibration.measured_events) { %><div class="facts__row"><dt>바닥 진동 동반</dt><dd><%= s.vibration.with_vibration %>건 <span class="muted">진동을 잰 <%= s.vibration.measured_events %>건 중 · 기준 초과 <%= s.vibration.exceeded_with_vibration %>건</span></dd></div><% } %>
+    </dl>
+  </section>
+
+  <% if (share.ai_text) { %>
+  <section class="card" aria-labelledby="sharedAi">
+    <h2 class="card__title" id="sharedAi">요약</h2>
+    <p class="ai-text"><%= share.ai_text %></p>
+  </section>
+  <% } %>
+
+  <section class="card" aria-labelledby="sharedSrc">
+    <h2 class="card__title" id="sharedSrc">소음원별 사건 수</h2>
+    <% const smax = Math.max(1, ...s.by_source.map((g) => g.count)); %>
+    <ul class="hbar-list">
+      <% s.by_source.filter((g) => g.count > 0).forEach((g) => { %>
+        <li class="hbar"><span class="hbar__label"><%- icon(g.icon, 'ico--sm') %> <%= g.label %></span><span class="hbar__track"><span class="hbar__fill" style="width:<%= Math.round((g.count / smax) * 100) %>%"></span><span class="hbar__fill hbar__fill--danger" style="width:<%= Math.round((g.exceeded / smax) * 100) %>%"></span></span><span class="hbar__value"><%= g.count %><small>건</small><% if (g.exceeded) { %> <span class="hbar__ex"><%= g.exceeded %></span><% } %></span></li>
+      <% }); %>
+    </ul>
+    <p class="muted small">진한 막대와 빨간 숫자는 기준 초과 사건 수입니다. 기준은 직접충격음 1분 평균 주간 39dB·야간 34dB, 공기전달음 5분 평균 주간 45dB·야간 40dB입니다.</p>
+  </section>
+
+  <p class="muted small shared__foot">
+    기준: 「공동주택 층간소음의 범위와 기준에 관한 규칙」. 이 기록은 대화를 위한 참고 자료이며, 공식 측정은 <%= center.name %>(<%= center.phone %>)에 신청할 수 있습니다.<br>
+    공유 생성 <%= time.formatKorean(share.created_at) %> · <%= time.formatKorean(share.expires_at) %>에 만료됩니다. 사용자 메모는 공유되지 않습니다.
+  </p>
+</main>
+<%- include('../partials/footer') %>

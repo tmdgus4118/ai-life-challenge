@@ -1,0 +1,12 @@
+{
+  "_comment": "YAMNet(AudioSet 521 클래스) display_name → 이웃소리 7개 그룹 매핑. 코드가 아닌 설정 파일이므로 시연 전까지 조정 가능.",
+  "confidence_threshold": 0.3,
+  "groups": {
+    "footstep": ["Walk, footsteps", "Run", "Shuffle"],
+    "furniture": ["Thump, thud", "Slam", "Scrape", "Drawer open or close", "Door", "Knock", "Tap", "Squeak", "Wood", "Chop", "Thunk", "Clatter"],
+    "hammer": ["Hammer", "Jackhammer", "Sawing", "Power tool", "Drill", "Tools"],
+    "pet": ["Dog", "Bark", "Howl", "Bow-wow", "Growling", "Whimper (dog)", "Cat", "Purr", "Meow", "Animal", "Domestic animals, pets"],
+    "music": ["Music", "Musical instrument", "Guitar", "Piano", "Drum kit", "Drum", "Singing", "Keyboard (musical)", "Violin, fiddle", "Electric guitar", "Bass guitar", "Percussion"],
+    "voice": ["Speech", "Child speech, kid speaking", "Conversation", "Shout", "Yell", "Children shouting", "Screaming", "Laughter", "Television", "Crying, sobbing", "Baby cry, infant cry", "Narration, monologue", "Babbling"]
+  }
+}
