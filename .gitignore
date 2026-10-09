@@ -8,3 +8,6 @@ src/public/models/yamnet/*.bin
 coverage/
 .DS_Store
 npm-debug.log*
+
+# 제출용 영상·대본 (용량이 커서 저장소에 넣지 않음)
+submission/
