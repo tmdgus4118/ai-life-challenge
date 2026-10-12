@@ -124,5 +124,5 @@ GitHub Pages 같은 정적 호스팅에는 올릴 수 없습니다(서버 렌더
 4. 배포가 끝나면 `https://<서비스이름>.onrender.com` 이 HTTPS 주소입니다. 마이크·진동 센서는 HTTPS에서만 동작합니다.
 
 무료 플랜의 한계와 대처:
-- **15분 동안 접속이 없으면 잠듭니다.** 첫 접속이 30~50초 걸립니다. 심사 전에 주소를 한 번 열어 두거나, 무료 핑 서비스(cron-job.org, UptimeRobot)로 `/api/health`를 10분마다 호출하게 하면 깨어 있습니다.
+- **15분 동안 접속이 없으면 잠듭니다.** 첫 접속이 30~50초 걸립니다. `.github/workflows/keep-alive.yml`이 GitHub Actions로 10분마다 `/api/health`를 호출해 깨어 있게 합니다. Render 주소가 `https://neighbor-sound.onrender.com`과 다르면 저장소 Settings → Secrets and variables → Actions → Variables에 `APP_URL`을 넣으세요. (GitHub는 60일 동안 커밋이 없는 저장소의 예약 작업을 멈추므로, 심사 기간에 가끔 커밋이 있으면 안전합니다.)
 - **디스크가 임시입니다.** 재배포·재시작 때 `db/*.json` 기록이 초기화됩니다(기준표 `db/thresholds.json`은 저장소에 있어 유지). 심사위원은 메인의 "데모 기록으로 둘러보기"로 자기 기록을 바로 만들 수 있으므로 데모에는 지장이 없습니다. 실제 기록을 오래 보관하려면 유료 디스크나 외부 DB가 필요합니다.

@@ -1,0 +1,27 @@
+# Render 무료 플랜은 15분 동안 접속이 없으면 잠든다.
+# 10분마다 /api/health 를 호출해 깨어 있게 한다. (GitHub Actions 무료, 별도 가입 없음)
+# 주소가 다르면 저장소 Settings → Secrets and variables → Actions → Variables 에 APP_URL 을 넣는다.
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: 서버 깨우기
+        env:
+          APP_URL: ${{ vars.APP_URL || 'https://neighbor-sound.onrender.com' }}
+        run: |
+          # 잠든 서버는 첫 응답까지 30~50초가 걸리므로 넉넉히 기다리고, 실패하면 두 번 더 시도한다
+          for i in 1 2 3; do
+            if curl -fsS --max-time 90 "$APP_URL/api/health"; then
+              echo; echo "ok ($i번째 시도)"; exit 0
+            fi
+            echo "응답 없음, 다시 시도 ($i)"; sleep 20
+          done
+          echo "서버가 응답하지 않습니다: $APP_URL"; exit 1
