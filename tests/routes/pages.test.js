@@ -55,6 +55,9 @@ describe('SSR 화면', () => {
   });
 
   test('리포트 화면: 기간 탭, 요약 카드 4, 막대, 시간대, AI 요약, PDF 버튼, 참고 고지', async () => {
+    // 메모 목록은 조회 기간 안의 사건만 보여 주므로, 날짜가 지나도 깨지지 않게 어제 사건을 하나 넣는다
+    const yesterday = new Date(Date.now() - 86400000);
+    await request(app.server).post('/api/events').set(as()).send([sampleEventInput({ started_at: yesterday.toISOString(), ended_at: new Date(yesterday.getTime() + 12000).toISOString(), memo: '최근 메모' })]);
     const res = await request(app.server).get('/report?days=14').set(as());
     expect(res.status).toBe(200);
     ['최근 7일', '최근 14일', '최근 30일', '총 사건', '기준 초과', '주된 소음원', '가장 많은 시간대', 'id="aiText"', 'id="regenBtn"', '/js/ai-stream.js', 'id="pdfBtn"', '공인 측정이 아닙니다', 'class="dial"', 'class="dial__night"', 'class="headline"', '소음원별 사건 수', '사용자 메모', 'id="shareBtn"', '기록에게 묻기', 'data-key="weekday_weekend"', 'id="askInput"', 'id="linkBtn"'].forEach((s) => expect(res.text).toContain(s));
