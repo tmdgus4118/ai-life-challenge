@@ -12,6 +12,15 @@ describe('API 통합', () => {
   });
   afterEach(async () => { await stopApp(app); removeDir(dir); });
 
+  test('GET /api/health: keep_alive 상태를 함께 돌려준다 (없으면 null, 있으면 호출 횟수)', async () => {
+    const before = await request(app.server).get('/api/health');
+    expect(before.body.keep_alive).toBeNull();
+    app.locals.keepAlive = { enabled: true, url: 'https://x.onrender.com', intervalMs: 300000, pings: 3, failures: 1 };
+    const after = await request(app.server).get('/api/health');
+    expect(after.body.keep_alive).toMatchObject({ enabled: true, url: 'https://x.onrender.com', interval_min: 5, pings: 3, failures: 1 });
+    expect(typeof after.body.keep_alive.uptime_sec).toBe('number');
+    delete app.locals.keepAlive;
+  });
   test('GET /api/health', async () => {
     const res = await request(app.server).get('/api/health');
     expect(res.status).toBe(200);

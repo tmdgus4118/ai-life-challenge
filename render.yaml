@@ -26,3 +26,5 @@ services:
         value: claude-opus-5-5
       - key: ANTHROPIC_API_KEY
         sync: false # 대시보드에서 직접 입력
+      - key: KEEP_ALIVE_URL
+        value: https://neighbor-sound.onrender.com # 서버가 5분마다 자기 공개 주소를 호출해 잠들지 않게 한다
