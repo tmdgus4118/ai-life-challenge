@@ -113,3 +113,16 @@ tests/                     Jest 테스트
 - YAMNet (Google, AudioSet), TensorFlow.js — Apache License 2.0
 - 기준: 국토교통부·기후에너지환경부 「공동주택 층간소음의 범위와 기준에 관한 규칙」 별표 (2023-01-02 시행). 최고소음도 1시간 3회 이상 규칙, 2005-06-30 이전 단지 2dB 가산 반영
 - 색상: 정부 디지털 서비스 디자인 시스템(KRDS) 색상 체계 참고
+
+## 배포 (Render 무료)
+
+GitHub Pages 같은 정적 호스팅에는 올릴 수 없습니다(서버 렌더링·JSON 파일 저장·서버 쪽 AI 호출). Render 무료 Web Service에 올립니다. 설정은 `render.yaml`에 있습니다.
+
+1. GitHub에 push → Render 대시보드에서 **New → Blueprint** → 이 저장소 선택. `render.yaml`대로 서비스가 만들어집니다.
+2. 서비스의 **Environment**에 `ANTHROPIC_API_KEY`를 직접 넣습니다(저장소에 두지 않음). 비우면 규칙 기반 작성기로 동작합니다.
+3. YAMNet 모델(`src/public/models/yamnet/`, 약 16MB)은 저장소에 포함되어 있어 그대로 셀프 호스팅됩니다. 옛 TF Hub 주소(tfhub.dev)는 2025년 이후 404라 `npm run download-model`과 브라우저 대체 경로는 더 이상 동작하지 않으므로, 모델 파일을 저장소에서 지우지 마세요.
+4. 배포가 끝나면 `https://<서비스이름>.onrender.com` 이 HTTPS 주소입니다. 마이크·진동 센서는 HTTPS에서만 동작합니다.
+
+무료 플랜의 한계와 대처:
+- **15분 동안 접속이 없으면 잠듭니다.** 첫 접속이 30~50초 걸립니다. 심사 전에 주소를 한 번 열어 두거나, 무료 핑 서비스(cron-job.org, UptimeRobot)로 `/api/health`를 10분마다 호출하게 하면 깨어 있습니다.
+- **디스크가 임시입니다.** 재배포·재시작 때 `db/*.json` 기록이 초기화됩니다(기준표 `db/thresholds.json`은 저장소에 있어 유지). 심사위원은 메인의 "데모 기록으로 둘러보기"로 자기 기록을 바로 만들 수 있으므로 데모에는 지장이 없습니다. 실제 기록을 오래 보관하려면 유료 디스크나 외부 DB가 필요합니다.

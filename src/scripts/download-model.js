@@ -2,6 +2,8 @@
  * YAMNet TF.js 모델을 로컬(src/public/models/yamnet)에 내려받아 셀프 호스팅한다.
  * TF Hub가 느리거나 막힌 환경에서도 감지 화면이 동작하게 한다.
  *   npm run download-model
+ * 주의: 기본 주소(tfhub.dev)는 2025년 TF Hub 종료 뒤 404를 돌려준다. 모델 파일은 저장소에 포함되어 있으므로
+ * 보통은 실행할 필요가 없고, 다시 받으려면 YAMNET_SOURCE 환경 변수로 살아 있는 주소를 넘겨야 한다.
  */
 const fs = require('fs');
 const path = require('path');

@@ -1,0 +1,28 @@
+# Render Blueprint — 이웃소리 (Node/Express SSR)
+# 대시보드에서 New → Blueprint → 이 저장소를 고르면 아래 설정대로 서비스가 만들어진다.
+# ANTHROPIC_API_KEY만 대시보드 Environment 화면에서 직접 넣는다(저장소에 두지 않음).
+services:
+  - type: web
+    name: neighbor-sound
+    runtime: node
+    plan: free
+    region: singapore # 한국에서 가장 가까운 리전
+    branch: master
+    # 빌드: 의존성 설치. YAMNet 모델(model.json + .bin 16MB)은 저장소에 포함되어 있어 따로 받지 않는다
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DB_DIR
+        value: ./db
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: LLM_MODEL
+        value: claude-opus-5-5
+      - key: ANTHROPIC_API_KEY
+        sync: false # 대시보드에서 직접 입력
